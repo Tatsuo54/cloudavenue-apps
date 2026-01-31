@@ -239,7 +239,7 @@
   </div>
   
   <div class="controls hidden" id="controls">
-    <div class="file-count" id="fileCount">0 ファイル選択中</div>
+    <div class="file-count" id="fileCount">読み込んだファイル: 0件</div>
     <div class="control-section">
       <div class="section-title">変換設定</div>
       <div class="control-row">
@@ -263,6 +263,7 @@
   <div class="btn-container hidden" id="btnContainer">
     <button class="btn" id="downloadBtn">一括変換してダウンロード（ZIP）</button>
     <button class="btn btn-secondary" id="clearBtn">クリア</button>
+    <a href="../" class="btn btn-secondary">トップに戻る</a>
   </div>
   
   <div class="progress hidden" id="progress"></div>
@@ -343,7 +344,7 @@
     }
     
     function showUI() {
-      fileCount.textContent = `${loadedImages.length} ファイル選択中`;
+      fileCount.textContent = `読み込んだファイル: ${loadedImages.length}件`;
       controls.classList.remove('hidden');
       previewContainer.classList.remove('hidden');
       btnContainer.classList.remove('hidden');
