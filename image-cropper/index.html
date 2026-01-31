@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>画像一括トリミングツール</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    .drop-zone {
+      border: 3px dashed #ccc;
+      border-radius: 15px;
+      padding: 40px;
+      text-align: center;
+      background: #fff;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 20px;
+    }
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: #666;
+      background: #f9f9f9;
+    }
+    .drop-zone p {
+      margin: 0;
+      color: #666;
+    }
+    .controls {
+      background: #fff;
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .control-section {
+      margin-bottom: 20px;
+    }
+    .control-section:last-child {
+      margin-bottom: 0;
+    }
+    .section-title {
+      font-weight: bold;
+      color: #666;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #eee;
+    }
+    .control-row {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 10px;
+    }
+    .control-row:last-child {
+      margin-bottom: 0;
+    }
+    .control-row label {
+      width: 100px;
+      font-weight: bold;
+      color: #333;
+    }
+    .control-row input[type="range"] {
+      flex: 1;
+      height: 8px;
+      -webkit-appearance: none;
+      background: #e0e0e0;
+      border-radius: 4px;
+      outline: none;
+    }
+    .control-row input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      background: #333;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    .control-row input[type="number"] {
+      width: 80px;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    .info {
+      background: #e8f4f8;
+      padding: 10px 15px;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #333;
+    }
+    .file-count {
+      background: #fff3cd;
+      padding: 10px 15px;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #856404;
+      margin-bottom: 15px;
+    }
+    .unit-toggle {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    .unit-btn {
+      padding: 8px 20px;
+      border: 2px solid #ddd;
+      background: #fff;
+      border-radius: 100px;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .unit-btn:hover {
+      border-color: #bbb;
+    }
+    .unit-btn.active {
+      background: #333;
+      color: #fff;
+      border-color: #333;
+    }
+    .preview-container {
+      background: #fff;
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      margin-bottom: 20px;
+    }
+    .preview-label {
+      font-weight: bold;
+      margin-bottom: 15px;
+      color: #333;
+    }
+    .preview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 15px;
+    }
+    .preview-grid.single-image {
+      grid-template-columns: 1fr;
+      max-width: 800px;
+    }
+    .preview-grid.single-image .preview-wrapper img {
+      max-height: none;
+    }
+    .preview-item {
+      background: #f9f9f9;
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+    }
+    .preview-item-name {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .preview-item-size {
+      font-size: 11px;
+      color: #999;
+      margin-bottom: 8px;
+    }
+    .preview-wrapper {
+      position: relative;
+      display: inline-block;
+      max-width: 100%;
+    }
+    .preview-wrapper img {
+      max-width: 100%;
+      max-height: 200px;
+      display: block;
+      margin: 0 auto;
+    }
+    .crop-overlay {
+      position: absolute;
+      background: rgba(0, 0, 0, 0.5);
+      pointer-events: none;
+    }
+    .crop-overlay-top {
+      top: 0;
+      left: 0;
+      right: 0;
+    }
+    .crop-overlay-bottom {
+      bottom: 0;
+      left: 0;
+      right: 0;
+    }
+    .crop-overlay-left {
+      left: 0;
+      top: 0;
+      bottom: 0;
+    }
+    .crop-overlay-right {
+      right: 0;
+      top: 0;
+      bottom: 0;
+    }
+    .btn-container {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 32px;
+      background: #333;
+      color: #fff;
+      border: none;
+      border-radius: 100px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:hover {
+      background: #555;
+      transform: translateY(-2px);
+    }
+    .btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .btn-secondary {
+      background: #fff;
+      color: #333;
+      border: 2px solid #ddd;
+    }
+    .btn-secondary:hover {
+      background: #f9f9f9;
+      border-color: #bbb;
+    }
+    .hidden {
+      display: none;
+    }
+    canvas {
+      display: none;
+    }
+    .progress {
+      margin-top: 15px;
+      padding: 10px 15px;
+      background: #d4edda;
+      border-radius: 8px;
+      color: #155724;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <h1>画像一括トリミングツール</h1>
+  
+  <div class="drop-zone" id="dropZone">
+    <p>複数の画像をドラッグ&ドロップ<br>またはクリックして選択</p>
+    <input type="file" id="fileInput" accept="image/*" multiple style="display: none;">
+  </div>
+  
+  <div class="controls hidden" id="controls">
+    <div class="file-count" id="fileCount">0 ファイル選択中</div>
+    <div class="unit-toggle">
+      <button class="unit-btn active" id="unitPx">px</button>
+      <button class="unit-btn" id="unitPercent">%</button>
+    </div>
+    <div class="control-section">
+      <div class="section-title">上下トリミング</div>
+      <div class="control-row">
+        <label>上から</label>
+        <input type="range" id="topCut" min="0" max="300" value="0">
+        <input type="number" id="topCutNum" min="0" max="1000" value="0" step="1"> <span class="unit-label">px</span>
+      </div>
+      <div class="control-row">
+        <label>下から</label>
+        <input type="range" id="bottomCut" min="0" max="300" value="0">
+        <input type="number" id="bottomCutNum" min="0" max="1000" value="0" step="1"> <span class="unit-label">px</span>
+      </div>
+    </div>
+    <div class="control-section">
+      <div class="section-title">左右トリミング</div>
+      <div class="control-row">
+        <label>左から</label>
+        <input type="range" id="leftCut" min="0" max="300" value="0">
+        <input type="number" id="leftCutNum" min="0" max="1000" value="0" step="1"> <span class="unit-label">px</span>
+      </div>
+      <div class="control-row">
+        <label>右から</label>
+        <input type="range" id="rightCut" min="0" max="300" value="0">
+        <input type="number" id="rightCutNum" min="0" max="1000" value="0" step="1"> <span class="unit-label">px</span>
+      </div>
+    </div>
+  </div>
+  
+  <div class="preview-container hidden" id="previewContainer">
+    <div class="preview-label">プレビュー（暗い部分がカットされます）</div>
+    <div class="preview-grid" id="previewGrid"></div>
+  </div>
+  
+  <div class="btn-container hidden" id="btnContainer">
+    <button class="btn" id="downloadBtn">一括ダウンロード（ZIP）</button>
+    <button class="btn btn-secondary" id="clearBtn">クリア</button>
+  </div>
+  
+  <div class="progress hidden" id="progress"></div>
+  
+  <canvas id="canvas"></canvas>
+  
+  <script>
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const controls = document.getElementById('controls');
+    const previewContainer = document.getElementById('previewContainer');
+    const previewGrid = document.getElementById('previewGrid');
+    const fileCount = document.getElementById('fileCount');
+    const unitPx = document.getElementById('unitPx');
+    const unitPercent = document.getElementById('unitPercent');
+    const unitLabels = document.querySelectorAll('.unit-label');
+    const topCut = document.getElementById('topCut');
+    const topCutNum = document.getElementById('topCutNum');
+    const bottomCut = document.getElementById('bottomCut');
+    const bottomCutNum = document.getElementById('bottomCutNum');
+    const leftCut = document.getElementById('leftCut');
+    const leftCutNum = document.getElementById('leftCutNum');
+    const rightCut = document.getElementById('rightCut');
+    const rightCutNum = document.getElementById('rightCutNum');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const btnContainer = document.getElementById('btnContainer');
+    const progress = document.getElementById('progress');
+    const canvas = document.getElementById('canvas');
+    
+    let loadedImages = []; // {name, image, dataUrl}
+    let unitMode = 'px'; // 'px' or 'percent'
+    
+    // 単位切り替え
+    unitPx.addEventListener('click', () => {
+      if (unitMode === 'px') return;
+      unitMode = 'px';
+      unitPx.classList.add('active');
+      unitPercent.classList.remove('active');
+      unitLabels.forEach(label => label.textContent = 'px');
+      convertValues('percent', 'px');
+      updateSliderMax();
+    });
+    
+    unitPercent.addEventListener('click', () => {
+      if (unitMode === 'percent') return;
+      unitMode = 'percent';
+      unitPercent.classList.add('active');
+      unitPx.classList.remove('active');
+      unitLabels.forEach(label => label.textContent = '%');
+      convertValues('px', 'percent');
+      updateSliderMax();
+    });
+    
+    function convertValues(from, to) {
+      if (loadedImages.length === 0) return;
+      
+      const firstImg = loadedImages[0].image;
+      
+      if (from === 'px' && to === 'percent') {
+        topCut.value = topCutNum.value = Math.round((parseFloat(topCut.value) / firstImg.height) * 100);
+        bottomCut.value = bottomCutNum.value = Math.round((parseFloat(bottomCut.value) / firstImg.height) * 100);
+        leftCut.value = leftCutNum.value = Math.round((parseFloat(leftCut.value) / firstImg.width) * 100);
+        rightCut.value = rightCutNum.value = Math.round((parseFloat(rightCut.value) / firstImg.width) * 100);
+      } else {
+        topCut.value = topCutNum.value = Math.round((parseFloat(topCut.value) / 100) * firstImg.height);
+        bottomCut.value = bottomCutNum.value = Math.round((parseFloat(bottomCut.value) / 100) * firstImg.height);
+        leftCut.value = leftCutNum.value = Math.round((parseFloat(leftCut.value) / 100) * firstImg.width);
+        rightCut.value = rightCutNum.value = Math.round((parseFloat(rightCut.value) / 100) * firstImg.width);
+      }
+    }
+    
+    function updateSliderMax() {
+      if (loadedImages.length === 0) return;
+      
+      if (unitMode === 'percent') {
+        topCut.max = bottomCut.max = leftCut.max = rightCut.max = 50;
+        topCutNum.max = bottomCutNum.max = leftCutNum.max = rightCutNum.max = 50;
+        topCutNum.step = bottomCutNum.step = leftCutNum.step = rightCutNum.step = 1;
+      } else {
+        let maxWidth = 0;
+        let maxHeight = 0;
+        loadedImages.forEach(item => {
+          if (item.image.width > maxWidth) maxWidth = item.image.width;
+          if (item.image.height > maxHeight) maxHeight = item.image.height;
+        });
+        topCut.max = bottomCut.max = Math.floor(maxHeight / 2);
+        leftCut.max = rightCut.max = Math.floor(maxWidth / 2);
+        topCutNum.max = bottomCutNum.max = maxHeight;
+        leftCutNum.max = rightCutNum.max = maxWidth;
+        topCutNum.step = bottomCutNum.step = leftCutNum.step = rightCutNum.step = 1;
+      }
+    }
+    
+    // ドラッグ&ドロップ
+    dropZone.addEventListener('click', () => fileInput.click());
+    
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('dragover');
+    });
+    
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('dragover');
+    });
+    
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+      if (files.length > 0) {
+        loadImages(files);
+      }
+    });
+    
+    fileInput.addEventListener('change', (e) => {
+      const files = Array.from(e.target.files);
+      if (files.length > 0) {
+        loadImages(files);
+      }
+    });
+    
+    function loadImages(files) {
+      loadedImages = [];
+      let loaded = 0;
+      
+      files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            loadedImages.push({
+              name: file.name.replace(/\.[^.]+$/, '') + '_cropped.png',
+              image: img,
+              dataUrl: e.target.result
+            });
+            loaded++;
+            if (loaded === files.length) {
+              showUI();
+            }
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+    
+    function showUI() {
+      fileCount.textContent = `${loadedImages.length} ファイル選択中`;
+      controls.classList.remove('hidden');
+      previewContainer.classList.remove('hidden');
+      btnContainer.classList.remove('hidden');
+      
+      updateSliderMax();
+      updateAllPreviews();
+    }
+    
+    function updateAllPreviews() {
+      previewGrid.innerHTML = '';
+      
+      // 1枚の時は大きく表示
+      if (loadedImages.length === 1) {
+        previewGrid.classList.add('single-image');
+      } else {
+        previewGrid.classList.remove('single-image');
+      }
+      
+      loadedImages.forEach((item, index) => {
+        const previewItem = document.createElement('div');
+        previewItem.className = 'preview-item';
+        
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'preview-item-name';
+        nameDiv.textContent = item.name;
+        
+        const sizeDiv = document.createElement('div');
+        sizeDiv.className = 'preview-item-size';
+        sizeDiv.dataset.index = index;
+        
+        const wrapper = document.createElement('div');
+        wrapper.className = 'preview-wrapper';
+        
+        const img = document.createElement('img');
+        img.src = item.dataUrl;
+        img.dataset.index = index;
+        img.onload = function() {
+          updateOverlays(this, wrapper);
+          updateItemSize(index, sizeDiv);
+        };
+        
+        const overlayTop = document.createElement('div');
+        overlayTop.className = 'crop-overlay crop-overlay-top';
+        const overlayBottom = document.createElement('div');
+        overlayBottom.className = 'crop-overlay crop-overlay-bottom';
+        const overlayLeft = document.createElement('div');
+        overlayLeft.className = 'crop-overlay crop-overlay-left';
+        const overlayRight = document.createElement('div');
+        overlayRight.className = 'crop-overlay crop-overlay-right';
+        
+        wrapper.appendChild(img);
+        wrapper.appendChild(overlayTop);
+        wrapper.appendChild(overlayBottom);
+        wrapper.appendChild(overlayLeft);
+        wrapper.appendChild(overlayRight);
+        previewItem.appendChild(nameDiv);
+        previewItem.appendChild(sizeDiv);
+        previewItem.appendChild(wrapper);
+        previewGrid.appendChild(previewItem);
+      });
+    }
+    
+    function updateOverlays(imgElement, wrapper) {
+      const index = parseInt(imgElement.dataset.index);
+      const originalImage = loadedImages[index].image;
+      
+      let top = parseFloat(topCut.value);
+      let bottom = parseFloat(bottomCut.value);
+      let left = parseFloat(leftCut.value);
+      let right = parseFloat(rightCut.value);
+      
+      // パーセンテージの場合はピクセルに変換
+      if (unitMode === 'percent') {
+        top = Math.round((top / 100) * originalImage.height);
+        bottom = Math.round((bottom / 100) * originalImage.height);
+        left = Math.round((left / 100) * originalImage.width);
+        right = Math.round((right / 100) * originalImage.width);
+      }
+      
+      const displayWidth = imgElement.offsetWidth;
+      const displayHeight = imgElement.offsetHeight;
+      const scaleX = displayWidth / originalImage.width;
+      const scaleY = displayHeight / originalImage.height;
+      
+      const overlayTop = wrapper.querySelector('.crop-overlay-top');
+      const overlayBottom = wrapper.querySelector('.crop-overlay-bottom');
+      const overlayLeft = wrapper.querySelector('.crop-overlay-left');
+      const overlayRight = wrapper.querySelector('.crop-overlay-right');
+      
+      overlayTop.style.height = (top * scaleY) + 'px';
+      overlayBottom.style.height = (bottom * scaleY) + 'px';
+      overlayLeft.style.width = (left * scaleX) + 'px';
+      overlayLeft.style.top = (top * scaleY) + 'px';
+      overlayLeft.style.bottom = (bottom * scaleY) + 'px';
+      overlayRight.style.width = (right * scaleX) + 'px';
+      overlayRight.style.top = (top * scaleY) + 'px';
+      overlayRight.style.bottom = (bottom * scaleY) + 'px';
+    }
+    
+    function updateAllOverlays() {
+      const images = previewGrid.querySelectorAll('.preview-wrapper img');
+      images.forEach(img => {
+        const wrapper = img.parentElement;
+        updateOverlays(img, wrapper);
+      });
+      updateAllSizes();
+    }
+    
+    function updateItemSize(index, sizeDiv) {
+      const item = loadedImages[index];
+      let top = parseFloat(topCut.value);
+      let bottom = parseFloat(bottomCut.value);
+      let left = parseFloat(leftCut.value);
+      let right = parseFloat(rightCut.value);
+      
+      // パーセンテージの場合はピクセルに変換
+      if (unitMode === 'percent') {
+        top = Math.round((top / 100) * item.image.height);
+        bottom = Math.round((bottom / 100) * item.image.height);
+        left = Math.round((left / 100) * item.image.width);
+        right = Math.round((right / 100) * item.image.width);
+      }
+      
+      const outputWidth = item.image.width - left - right;
+      const outputHeight = item.image.height - top - bottom;
+      
+      sizeDiv.textContent = `${item.image.width}×${item.image.height} → ${outputWidth}×${outputHeight}`;
+    }
+    
+    function updateAllSizes() {
+      const sizeDivs = previewGrid.querySelectorAll('.preview-item-size');
+      sizeDivs.forEach(sizeDiv => {
+        const index = parseInt(sizeDiv.dataset.index);
+        updateItemSize(index, sizeDiv);
+      });
+    }
+    
+    // スライダーと数値入力の同期
+    topCut.addEventListener('input', () => { topCutNum.value = topCut.value; updateAllOverlays(); });
+    topCutNum.addEventListener('input', () => { topCut.value = topCutNum.value; updateAllOverlays(); });
+    bottomCut.addEventListener('input', () => { bottomCutNum.value = bottomCut.value; updateAllOverlays(); });
+    bottomCutNum.addEventListener('input', () => { bottomCut.value = bottomCutNum.value; updateAllOverlays(); });
+    leftCut.addEventListener('input', () => { leftCutNum.value = leftCut.value; updateAllOverlays(); });
+    leftCutNum.addEventListener('input', () => { leftCut.value = leftCutNum.value; updateAllOverlays(); });
+    rightCut.addEventListener('input', () => { rightCutNum.value = rightCut.value; updateAllOverlays(); });
+    rightCutNum.addEventListener('input', () => { rightCut.value = rightCutNum.value; updateAllOverlays(); });
+    
+    window.addEventListener('resize', updateAllOverlays);
+    
+    // クリア
+    clearBtn.addEventListener('click', () => {
+      loadedImages = [];
+      previewGrid.innerHTML = '';
+      controls.classList.add('hidden');
+      previewContainer.classList.add('hidden');
+      btnContainer.classList.add('hidden');
+      progress.classList.add('hidden');
+      fileInput.value = '';
+    });
+    
+    // 一括ダウンロード
+    downloadBtn.addEventListener('click', async () => {
+      if (loadedImages.length === 0) return;
+      
+      downloadBtn.disabled = true;
+      progress.classList.remove('hidden');
+      progress.textContent = '処理中...';
+      
+      const zip = new JSZip();
+      const ctx = canvas.getContext('2d');
+      
+      for (let i = 0; i < loadedImages.length; i++) {
+        const item = loadedImages[i];
+        progress.textContent = `処理中... ${i + 1} / ${loadedImages.length}`;
+        
+        let top = parseFloat(topCut.value);
+        let bottom = parseFloat(bottomCut.value);
+        let left = parseFloat(leftCut.value);
+        let right = parseFloat(rightCut.value);
+        
+        // パーセンテージの場合はピクセルに変換
+        if (unitMode === 'percent') {
+          top = Math.round((top / 100) * item.image.height);
+          bottom = Math.round((bottom / 100) * item.image.height);
+          left = Math.round((left / 100) * item.image.width);
+          right = Math.round((right / 100) * item.image.width);
+        }
+        
+        const outputWidth = item.image.width - left - right;
+        const outputHeight = item.image.height - top - bottom;
+        
+        canvas.width = outputWidth;
+        canvas.height = outputHeight;
+        
+        ctx.drawImage(
+          item.image,
+          left, top, outputWidth, outputHeight,
+          0, 0, outputWidth, outputHeight
+        );
+        
+        const dataUrl = canvas.toDataURL('image/png');
+        const base64 = dataUrl.split(',')[1];
+        zip.file(item.name, base64, {base64: true});
+        
+        // UIがフリーズしないように少し待つ
+        await new Promise(resolve => setTimeout(resolve, 10));
+      }
+      
+      progress.textContent = 'ZIPファイル作成中...';
+      
+      const blob = await zip.generateAsync({type: 'blob'});
+      const link = document.createElement('a');
+      link.download = 'cropped_images.zip';
+      link.href = URL.createObjectURL(blob);
+      link.click();
+      
+      progress.textContent = `完了！ ${loadedImages.length} ファイルを処理しました`;
+      downloadBtn.disabled = false;
+    });
+  </script>
+</body>
+</html>

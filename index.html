@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cloud Avenue Apps</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      background: #f5f5f5;
+      color: #333;
+    }
+    h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      color: #666;
+      margin-bottom: 40px;
+    }
+    .app-list {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .app-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px 25px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.2s;
+    }
+    .app-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    }
+    .app-name {
+      font-weight: bold;
+      font-size: 18px;
+      margin-bottom: 6px;
+    }
+    .app-desc {
+      color: #666;
+      font-size: 14px;
+    }
+    footer {
+      margin-top: 60px;
+      text-align: center;
+      color: #999;
+      font-size: 13px;
+    }
+    footer a {
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <h1>Cloud Avenue Apps</h1>
+  <p class="subtitle">画像処理ツール</p>
+  
+  <div class="app-list">
+    <a href="/image-cropper/" class="app-card">
+      <div class="app-name">画像一括トリミングツール</div>
+      <div class="app-desc">複数画像の上下左右を一括でトリミング。ピクセル・パーセント指定対応。</div>
+    </a>
+    
+    <a href="/webp-converter/" class="app-card">
+      <div class="app-name">画像一括WebP変換ツール</div>
+      <div class="app-desc">複数画像をWebP形式に一括変換。品質調整と圧縮率のプレビュー付き。</div>
+    </a>
+  </div>
+  
+  <footer>
+    <a href="https://cloudavenue.jp" target="_blank">cloudavenue.jp</a>
+  </footer>
+</body>
+</html>

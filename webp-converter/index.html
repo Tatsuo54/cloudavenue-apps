@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>画像一括WebP変換ツール</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    .drop-zone {
+      border: 3px dashed #ccc;
+      border-radius: 15px;
+      padding: 40px;
+      text-align: center;
+      background: #fff;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 20px;
+    }
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: #666;
+      background: #f9f9f9;
+    }
+    .drop-zone p {
+      margin: 0;
+      color: #666;
+    }
+    .controls {
+      background: #fff;
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .file-count {
+      background: #fff3cd;
+      padding: 10px 15px;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #856404;
+      margin-bottom: 15px;
+    }
+    .control-section {
+      margin-bottom: 15px;
+    }
+    .control-section:last-child {
+      margin-bottom: 0;
+    }
+    .section-title {
+      font-weight: bold;
+      color: #666;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #eee;
+    }
+    .control-row {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 10px;
+    }
+    .control-row:last-child {
+      margin-bottom: 0;
+    }
+    .control-row label {
+      width: 100px;
+      font-weight: bold;
+      color: #333;
+    }
+    .control-row input[type="range"] {
+      flex: 1;
+      height: 8px;
+      -webkit-appearance: none;
+      background: #e0e0e0;
+      border-radius: 4px;
+      outline: none;
+    }
+    .control-row input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      background: #333;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    .control-row input[type="number"] {
+      width: 80px;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    .info {
+      background: #e8f4f8;
+      padding: 10px 15px;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #333;
+    }
+    .size-summary {
+      background: #d4edda;
+      padding: 10px 15px;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #155724;
+    }
+    .preview-container {
+      background: #fff;
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      margin-bottom: 20px;
+    }
+    .preview-label {
+      font-weight: bold;
+      margin-bottom: 15px;
+      color: #333;
+    }
+    .preview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+    }
+    .preview-grid.single-image {
+      grid-template-columns: 1fr;
+      max-width: 600px;
+    }
+    .preview-grid.single-image .preview-wrapper img {
+      max-height: none;
+    }
+    .preview-item {
+      background: #f9f9f9;
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+    }
+    .preview-item-name {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .preview-item-size {
+      font-size: 11px;
+      color: #999;
+      margin-bottom: 8px;
+    }
+    .preview-item-size .reduced {
+      color: #28a745;
+      font-weight: bold;
+    }
+    .preview-wrapper {
+      position: relative;
+      display: inline-block;
+      max-width: 100%;
+    }
+    .preview-wrapper img {
+      max-width: 100%;
+      max-height: 150px;
+      display: block;
+      margin: 0 auto;
+      border-radius: 5px;
+    }
+    .btn-container {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 32px;
+      background: #333;
+      color: #fff;
+      border: none;
+      border-radius: 100px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:hover {
+      background: #555;
+      transform: translateY(-2px);
+    }
+    .btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .btn-secondary {
+      background: #fff;
+      color: #333;
+      border: 2px solid #ddd;
+    }
+    .btn-secondary:hover {
+      background: #f9f9f9;
+      border-color: #bbb;
+    }
+    .hidden {
+      display: none;
+    }
+    canvas {
+      display: none;
+    }
+    .progress {
+      margin-top: 15px;
+      padding: 10px 15px;
+      background: #d4edda;
+      border-radius: 8px;
+      color: #155724;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <h1>画像一括WebP変換ツール</h1>
+  
+  <div class="drop-zone" id="dropZone">
+    <p>複数の画像をドラッグ&ドロップ<br>またはクリックして選択</p>
+    <input type="file" id="fileInput" accept="image/*" multiple style="display: none;">
+  </div>
+  
+  <div class="controls hidden" id="controls">
+    <div class="file-count" id="fileCount">0 ファイル選択中</div>
+    <div class="control-section">
+      <div class="section-title">変換設定</div>
+      <div class="control-row">
+        <label>品質</label>
+        <input type="range" id="quality" min="1" max="100" value="80">
+        <input type="number" id="qualityNum" min="1" max="100" value="80"> %
+      </div>
+    </div>
+    <div class="control-section">
+      <div class="size-summary" id="sizeSummary">
+        変換前: - / 変換後（推定）: - / 削減率: -
+      </div>
+    </div>
+  </div>
+  
+  <div class="preview-container hidden" id="previewContainer">
+    <div class="preview-label">プレビュー</div>
+    <div class="preview-grid" id="previewGrid"></div>
+  </div>
+  
+  <div class="btn-container hidden" id="btnContainer">
+    <button class="btn" id="downloadBtn">一括変換してダウンロード（ZIP）</button>
+    <button class="btn btn-secondary" id="clearBtn">クリア</button>
+  </div>
+  
+  <div class="progress hidden" id="progress"></div>
+  
+  <canvas id="canvas"></canvas>
+  
+  <script>
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const controls = document.getElementById('controls');
+    const previewContainer = document.getElementById('previewContainer');
+    const previewGrid = document.getElementById('previewGrid');
+    const fileCount = document.getElementById('fileCount');
+    const quality = document.getElementById('quality');
+    const qualityNum = document.getElementById('qualityNum');
+    const sizeSummary = document.getElementById('sizeSummary');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const btnContainer = document.getElementById('btnContainer');
+    const progress = document.getElementById('progress');
+    const canvas = document.getElementById('canvas');
+    
+    let loadedImages = []; // {name, image, dataUrl, originalSize, file}
+    
+    // ドラッグ&ドロップ
+    dropZone.addEventListener('click', () => fileInput.click());
+    
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('dragover');
+    });
+    
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('dragover');
+    });
+    
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+      if (files.length > 0) {
+        loadImages(files);
+      }
+    });
+    
+    fileInput.addEventListener('change', (e) => {
+      const files = Array.from(e.target.files);
+      if (files.length > 0) {
+        loadImages(files);
+      }
+    });
+    
+    function loadImages(files) {
+      loadedImages = [];
+      let loaded = 0;
+      
+      files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            loadedImages.push({
+              name: file.name.replace(/\.[^.]+$/, '') + '.webp',
+              image: img,
+              dataUrl: e.target.result,
+              originalSize: file.size,
+              file: file
+            });
+            loaded++;
+            if (loaded === files.length) {
+              showUI();
+            }
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+    
+    function showUI() {
+      fileCount.textContent = `${loadedImages.length} ファイル選択中`;
+      controls.classList.remove('hidden');
+      previewContainer.classList.remove('hidden');
+      btnContainer.classList.remove('hidden');
+      updatePreviews();
+      updateSizeSummary();
+    }
+    
+    function formatSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+    }
+    
+    async function estimateWebPSize(img, q) {
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      
+      const dataUrl = canvas.toDataURL('image/webp', q / 100);
+      const base64 = dataUrl.split(',')[1];
+      return Math.round(base64.length * 0.75); // Base64 to bytes approximation
+    }
+    
+    async function updatePreviews() {
+      previewGrid.innerHTML = '';
+      
+      if (loadedImages.length === 1) {
+        previewGrid.classList.add('single-image');
+      } else {
+        previewGrid.classList.remove('single-image');
+      }
+      
+      const q = parseInt(quality.value);
+      
+      for (let i = 0; i < loadedImages.length; i++) {
+        const item = loadedImages[i];
+        const estimatedSize = await estimateWebPSize(item.image, q);
+        const reduction = Math.round((1 - estimatedSize / item.originalSize) * 100);
+        
+        const previewItem = document.createElement('div');
+        previewItem.className = 'preview-item';
+        
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'preview-item-name';
+        nameDiv.textContent = item.name;
+        
+        const sizeDiv = document.createElement('div');
+        sizeDiv.className = 'preview-item-size';
+        sizeDiv.innerHTML = `${formatSize(item.originalSize)} → ${formatSize(estimatedSize)} <span class="reduced">(${reduction > 0 ? '-' : '+'}${Math.abs(reduction)}%)</span>`;
+        
+        const wrapper = document.createElement('div');
+        wrapper.className = 'preview-wrapper';
+        
+        const img = document.createElement('img');
+        img.src = item.dataUrl;
+        
+        wrapper.appendChild(img);
+        previewItem.appendChild(nameDiv);
+        previewItem.appendChild(sizeDiv);
+        previewItem.appendChild(wrapper);
+        previewGrid.appendChild(previewItem);
+      }
+    }
+    
+    async function updateSizeSummary() {
+      const q = parseInt(quality.value);
+      let totalOriginal = 0;
+      let totalEstimated = 0;
+      
+      for (const item of loadedImages) {
+        totalOriginal += item.originalSize;
+        totalEstimated += await estimateWebPSize(item.image, q);
+      }
+      
+      const reduction = Math.round((1 - totalEstimated / totalOriginal) * 100);
+      sizeSummary.innerHTML = `変換前: <strong>${formatSize(totalOriginal)}</strong> / 変換後（推定）: <strong>${formatSize(totalEstimated)}</strong> / 削減率: <strong>${reduction > 0 ? '-' : '+'}${Math.abs(reduction)}%</strong>`;
+    }
+    
+    // スライダーと数値入力の同期
+    let updateTimeout;
+    function debouncedUpdate() {
+      clearTimeout(updateTimeout);
+      updateTimeout = setTimeout(() => {
+        updatePreviews();
+        updateSizeSummary();
+      }, 300);
+    }
+    
+    quality.addEventListener('input', () => {
+      qualityNum.value = quality.value;
+      debouncedUpdate();
+    });
+    qualityNum.addEventListener('input', () => {
+      quality.value = qualityNum.value;
+      debouncedUpdate();
+    });
+    
+    // クリア
+    clearBtn.addEventListener('click', () => {
+      loadedImages = [];
+      previewGrid.innerHTML = '';
+      controls.classList.add('hidden');
+      previewContainer.classList.add('hidden');
+      btnContainer.classList.add('hidden');
+      progress.classList.add('hidden');
+      fileInput.value = '';
+    });
+    
+    // 一括ダウンロード
+    downloadBtn.addEventListener('click', async () => {
+      if (loadedImages.length === 0) return;
+      
+      downloadBtn.disabled = true;
+      progress.classList.remove('hidden');
+      progress.textContent = '変換中...';
+      
+      const q = parseInt(quality.value);
+      const zip = new JSZip();
+      const ctx = canvas.getContext('2d');
+      
+      for (let i = 0; i < loadedImages.length; i++) {
+        const item = loadedImages[i];
+        progress.textContent = `変換中... ${i + 1} / ${loadedImages.length}`;
+        
+        canvas.width = item.image.width;
+        canvas.height = item.image.height;
+        ctx.drawImage(item.image, 0, 0);
+        
+        const dataUrl = canvas.toDataURL('image/webp', q / 100);
+        const base64 = dataUrl.split(',')[1];
+        zip.file(item.name, base64, {base64: true});
+        
+        // UIがフリーズしないように少し待つ
+        await new Promise(resolve => setTimeout(resolve, 10));
+      }
+      
+      progress.textContent = 'ZIPファイル作成中...';
+      
+      const blob = await zip.generateAsync({type: 'blob'});
+      const link = document.createElement('a');
+      link.download = 'webp_images.zip';
+      link.href = URL.createObjectURL(blob);
+      link.click();
+      
+      progress.textContent = `完了！ ${loadedImages.length} ファイルを変換しました`;
+      downloadBtn.disabled = false;
+    });
+  </script>
+</body>
+</html>
