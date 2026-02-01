@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>店舗クロスチェック | Cloud Avenue</title>
+    <title>店舗クロスチェック</title>
     <style>
         * {
             box-sizing: border-box;
@@ -99,11 +99,18 @@
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
         }
         
         .open-all-btn:hover {
             background: #218838;
+        }
+        
+        .popup-note {
+            font-size: 0.75rem;
+            color: #999;
+            text-align: center;
+            margin-bottom: 1rem;
         }
         
         .link-grid {
@@ -235,10 +242,6 @@
             font-size: 0.8rem;
         }
         
-        footer a {
-            color: #666;
-        }
-        
         @media (max-width: 480px) {
             .link-grid {
                 grid-template-columns: 1fr;
@@ -253,19 +256,20 @@
         
         <div class="input-group">
             <label for="shopName">店舗名 *</label>
-            <input type="text" id="shopName" placeholder="例: スーパーポテト">
+            <input type="text" id="shopName" placeholder="例: ヨドバシカメラ">
         </div>
         
         <div class="input-group">
             <label for="area">エリア（任意）</label>
-            <input type="text" id="area" placeholder="例: 日本橋">
+            <input type="text" id="area" placeholder="例: 秋葉原">
         </div>
         
         <button class="generate-btn" onclick="generateLinks()">検索リンクを生成</button>
         
         <div class="results" id="results">
             <h2>検索リンク</h2>
-            <button class="open-all-btn" onclick="openAllLinks()">すべてのリンクを開く</button>
+            <button class="open-all-btn" onclick="openAllLinks()">すべて開く</button>
+            <p class="popup-note">※ ポップアップ許可が必要です。タブを多数開くと、reCAPTCHAが表示される場合があります。</p>
             <div class="link-grid" id="linkGrid"></div>
             
             <div class="query-display">
@@ -285,7 +289,7 @@
         </div>
         
         <footer>
-            <a href="https://cloudavenue.jp">Cloud Avenue</a>
+            店舗情報検証ツール
         </footer>
     </div>
     
@@ -304,15 +308,16 @@
             const baseQuery = area ? `${shopName} ${area}` : shopName;
             
             const searches = [
-                { label: 'Google マップ', query: `${baseQuery} Google マップ`, warning: false },
-                { label: '公式サイト', query: `${baseQuery} 公式サイト`, warning: false },
-                { label: 'Instagram', query: `${baseQuery} Instagram`, warning: false },
-                { label: 'X (Twitter)', query: `${baseQuery} Twitter`, warning: false },
-                { label: 'TikTok', query: `${baseQuery} TikTok`, warning: false },
-                { label: '食べログ', query: `${baseQuery} 食べログ`, warning: false },
-                { label: 'Retty', query: `${baseQuery} Retty`, warning: false },
-                { label: '閉業情報', query: `${baseQuery} 閉業`, warning: true },
-                { label: '移転情報', query: `${baseQuery} 移転`, warning: true },
+                { label: 'Google検索', url: `https://www.google.com/search?q=${encodeURIComponent(baseQuery)}`, type: 'normal' },
+                { label: 'Googleマップ', url: `https://www.google.com/maps/search/${encodeURIComponent(baseQuery)}`, type: 'normal' },
+                { label: '公式サイト', url: `https://www.google.com/search?q=${encodeURIComponent(baseQuery + ' 公式サイト')}`, type: 'normal' },
+                { label: 'Instagram', url: `https://www.google.com/search?q=${encodeURIComponent('site:instagram.com ' + baseQuery)}`, type: 'normal' },
+                { label: 'X (Twitter)', url: `https://www.google.com/search?q=${encodeURIComponent('site:twitter.com ' + baseQuery)}`, type: 'normal' },
+                { label: 'TikTok', url: `https://www.google.com/search?q=${encodeURIComponent('site:tiktok.com ' + baseQuery)}`, type: 'normal' },
+                { label: '食べログ', url: `https://www.google.com/search?q=${encodeURIComponent('site:tabelog.com ' + baseQuery)}`, type: 'normal' },
+                { label: 'Retty', url: `https://www.google.com/search?q=${encodeURIComponent('site:retty.me ' + baseQuery)}`, type: 'normal' },
+                { label: '閉業情報', url: `https://www.google.com/search?q=${encodeURIComponent(baseQuery + ' 閉業')}`, type: 'warning' },
+                { label: '移転情報', url: `https://www.google.com/search?q=${encodeURIComponent(baseQuery + ' 移転')}`, type: 'warning' },
             ];
             
             currentLinks = [];
@@ -320,13 +325,12 @@
             linkGrid.innerHTML = '';
             
             searches.forEach(search => {
-                const url = `https://www.google.com/search?q=${encodeURIComponent(search.query)}`;
-                currentLinks.push(url);
+                currentLinks.push(search.url);
                 const link = document.createElement('a');
-                link.href = url;
+                link.href = search.url;
                 link.target = '_blank';
                 link.rel = 'noopener noreferrer';
-                link.className = `link-btn${search.warning ? ' warning' : ''}`;
+                link.className = `link-btn ${search.type}`;
                 link.textContent = search.label;
                 linkGrid.appendChild(link);
             });
@@ -341,7 +345,7 @@
             currentLinks.forEach((url, index) => {
                 setTimeout(() => {
                     window.open(url, '_blank');
-                }, index * 300);
+                }, index * 100);
             });
         }
         
@@ -354,13 +358,8 @@
                 date: new Date().toISOString()
             };
             
-            // 重複を削除
             history = history.filter(h => !(h.shopName === shopName && h.area === area));
-            
-            // 先頭に追加
             history.unshift(entry);
-            
-            // 最大20件
             history = history.slice(0, 20);
             
             localStorage.setItem('crossCheckHistory', JSON.stringify(history));
@@ -402,7 +401,6 @@
             }
         }
         
-        // Enterキーで実行
         document.getElementById('shopName').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') generateLinks();
         });
@@ -410,7 +408,6 @@
             if (e.key === 'Enter') generateLinks();
         });
         
-        // 初期表示
         renderHistory();
     </script>
 </body>
