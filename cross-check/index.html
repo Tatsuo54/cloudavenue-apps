@@ -90,6 +90,22 @@
             color: #333;
         }
         
+        .open-all-btn {
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 0.9rem;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 1rem;
+        }
+        
+        .open-all-btn:hover {
+            background: #218838;
+        }
+        
         .link-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -144,6 +160,74 @@
             word-break: break-all;
         }
         
+        .history-section {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        
+        .history-section h3 {
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .clear-history-btn {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        .clear-history-btn:hover {
+            background: #c82333;
+        }
+        
+        .history-list {
+            list-style: none;
+        }
+        
+        .history-item {
+            padding: 0.5rem;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .history-item:hover {
+            background: #f5f5f5;
+        }
+        
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        
+        .history-item-text {
+            flex: 1;
+        }
+        
+        .history-item-date {
+            color: #999;
+            font-size: 0.75rem;
+            margin-left: 1rem;
+        }
+        
+        .no-history {
+            color: #999;
+            font-size: 0.85rem;
+        }
+        
         footer {
             margin-top: 3rem;
             text-align: center;
@@ -181,6 +265,7 @@
         
         <div class="results" id="results">
             <h2>検索リンク</h2>
+            <button class="open-all-btn" onclick="openAllLinks()">すべてのリンクを開く</button>
             <div class="link-grid" id="linkGrid"></div>
             
             <div class="query-display">
@@ -189,12 +274,24 @@
             </div>
         </div>
         
+        <div class="history-section">
+            <h3>
+                検索履歴
+                <button class="clear-history-btn" onclick="clearHistory()">クリア</button>
+            </h3>
+            <ul class="history-list" id="historyList">
+                <li class="no-history">履歴がありません</li>
+            </ul>
+        </div>
+        
         <footer>
             <a href="https://cloudavenue.jp">Cloud Avenue</a>
         </footer>
     </div>
     
     <script>
+        let currentLinks = [];
+        
         function generateLinks() {
             const shopName = document.getElementById('shopName').value.trim();
             const area = document.getElementById('area').value.trim();
@@ -211,17 +308,20 @@
                 { label: '公式サイト', query: `${baseQuery} 公式サイト`, warning: false },
                 { label: 'Instagram', query: `${baseQuery} Instagram`, warning: false },
                 { label: 'X (Twitter)', query: `${baseQuery} Twitter`, warning: false },
+                { label: 'TikTok', query: `${baseQuery} TikTok`, warning: false },
                 { label: '食べログ', query: `${baseQuery} 食べログ`, warning: false },
                 { label: 'Retty', query: `${baseQuery} Retty`, warning: false },
-                { label: '閉店情報', query: `${baseQuery} 閉店`, warning: true },
+                { label: '閉業情報', query: `${baseQuery} 閉業`, warning: true },
                 { label: '移転情報', query: `${baseQuery} 移転`, warning: true },
             ];
             
+            currentLinks = [];
             const linkGrid = document.getElementById('linkGrid');
             linkGrid.innerHTML = '';
             
             searches.forEach(search => {
                 const url = `https://www.google.com/search?q=${encodeURIComponent(search.query)}`;
+                currentLinks.push(url);
                 const link = document.createElement('a');
                 link.href = url;
                 link.target = '_blank';
@@ -233,6 +333,73 @@
             
             document.getElementById('queryText').textContent = baseQuery;
             document.getElementById('results').classList.add('show');
+            
+            saveToHistory(shopName, area);
+        }
+        
+        function openAllLinks() {
+            currentLinks.forEach((url, index) => {
+                setTimeout(() => {
+                    window.open(url, '_blank');
+                }, index * 300);
+            });
+        }
+        
+        function saveToHistory(shopName, area) {
+            let history = JSON.parse(localStorage.getItem('crossCheckHistory') || '[]');
+            
+            const entry = {
+                shopName,
+                area,
+                date: new Date().toISOString()
+            };
+            
+            // 重複を削除
+            history = history.filter(h => !(h.shopName === shopName && h.area === area));
+            
+            // 先頭に追加
+            history.unshift(entry);
+            
+            // 最大20件
+            history = history.slice(0, 20);
+            
+            localStorage.setItem('crossCheckHistory', JSON.stringify(history));
+            renderHistory();
+        }
+        
+        function renderHistory() {
+            const history = JSON.parse(localStorage.getItem('crossCheckHistory') || '[]');
+            const historyList = document.getElementById('historyList');
+            
+            if (history.length === 0) {
+                historyList.innerHTML = '<li class="no-history">履歴がありません</li>';
+                return;
+            }
+            
+            historyList.innerHTML = history.map(entry => {
+                const displayText = entry.area ? `${entry.shopName}（${entry.area}）` : entry.shopName;
+                const date = new Date(entry.date);
+                const dateStr = `${date.getMonth() + 1}/${date.getDate()}`;
+                return `
+                    <li class="history-item" onclick="loadFromHistory('${entry.shopName}', '${entry.area || ''}')">
+                        <span class="history-item-text">${displayText}</span>
+                        <span class="history-item-date">${dateStr}</span>
+                    </li>
+                `;
+            }).join('');
+        }
+        
+        function loadFromHistory(shopName, area) {
+            document.getElementById('shopName').value = shopName;
+            document.getElementById('area').value = area;
+            generateLinks();
+        }
+        
+        function clearHistory() {
+            if (confirm('検索履歴をすべて削除しますか？')) {
+                localStorage.removeItem('crossCheckHistory');
+                renderHistory();
+            }
         }
         
         // Enterキーで実行
@@ -242,6 +409,9 @@
         document.getElementById('area').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') generateLinks();
         });
+        
+        // 初期表示
+        renderHistory();
     </script>
 </body>
 </html>
