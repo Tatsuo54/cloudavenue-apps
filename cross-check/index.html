@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>店舗クロスチェック</title>
+    <title>クロス検索ツール（簡易版）</title>
     <style>
         * {
             box-sizing: border-box;
@@ -23,6 +23,17 @@
             margin: 0 auto;
         }
         
+        .back-link {
+            margin: 0 0 10px 0;
+        }
+        .back-link a {
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-link a:hover {
+            color: #333;
+        }
         h1 {
             font-size: 1.5rem;
             margin-bottom: 0.5rem;
@@ -238,8 +249,14 @@
         footer {
             margin-top: 3rem;
             text-align: center;
+        }
+        footer a {
+            color: #666;
+            font-size: 15px;
+            text-decoration: none;
+        }
+        footer a:hover {
             color: #999;
-            font-size: 0.8rem;
         }
         
         @media (max-width: 480px) {
@@ -251,8 +268,9 @@
 </head>
 <body>
     <div class="container">
-        <h1>店舗クロスチェック</h1>
-        <p class="description">店舗名を入力すると、各種サービスでの検索リンクを一括生成します。</p>
+        <p class="back-link"><a href="/">← トップに戻る</a></p>
+        <h1>クロス検索ツール（簡易版）</h1>
+        <p class="description">キーワードを入力すると、各種サービスでの検索リンクを一括生成します。</p>
         
         <div class="input-group">
             <label for="shopName">店舗名 *</label>
@@ -289,7 +307,7 @@
         </div>
         
         <footer>
-            店舗情報検証ツール
+            <a href="https://cloudavenue.jp" target="_blank">cloudavenue.jp</a>
         </footer>
     </div>
     
