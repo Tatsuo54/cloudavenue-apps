@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>店舗クロスチェック | Cloud Avenue</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+        
+        .description {
+            color: #666;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+        }
+        
+        .input-group {
+            margin-bottom: 1rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #0066cc;
+        }
+        
+        .generate-btn {
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 1rem;
+            background: #0066cc;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+        
+        .generate-btn:hover {
+            background: #0052a3;
+        }
+        
+        .results {
+            margin-top: 2rem;
+            display: none;
+        }
+        
+        .results.show {
+            display: block;
+        }
+        
+        .results h2 {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+        
+        .link-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+        
+        .link-btn {
+            display: block;
+            padding: 0.75rem 1rem;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-decoration: none;
+            color: #333;
+            font-size: 0.9rem;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        
+        .link-btn:hover {
+            background: #f0f0f0;
+            border-color: #999;
+        }
+        
+        .link-btn.warning {
+            border-color: #ff9800;
+            background: #fff8e1;
+        }
+        
+        .link-btn.warning:hover {
+            background: #ffecb3;
+        }
+        
+        .query-display {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        
+        .query-display h3 {
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            color: #666;
+        }
+        
+        .query-text {
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: #333;
+            word-break: break-all;
+        }
+        
+        footer {
+            margin-top: 3rem;
+            text-align: center;
+            color: #999;
+            font-size: 0.8rem;
+        }
+        
+        footer a {
+            color: #666;
+        }
+        
+        @media (max-width: 480px) {
+            .link-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>店舗クロスチェック</h1>
+        <p class="description">店舗名を入力すると、各種サービスでの検索リンクを一括生成します。</p>
+        
+        <div class="input-group">
+            <label for="shopName">店舗名 *</label>
+            <input type="text" id="shopName" placeholder="例: スーパーポテト">
+        </div>
+        
+        <div class="input-group">
+            <label for="area">エリア（任意）</label>
+            <input type="text" id="area" placeholder="例: 日本橋">
+        </div>
+        
+        <button class="generate-btn" onclick="generateLinks()">検索リンクを生成</button>
+        
+        <div class="results" id="results">
+            <h2>検索リンク</h2>
+            <div class="link-grid" id="linkGrid"></div>
+            
+            <div class="query-display">
+                <h3>検索クエリ</h3>
+                <p class="query-text" id="queryText"></p>
+            </div>
+        </div>
+        
+        <footer>
+            <a href="https://cloudavenue.jp">Cloud Avenue</a>
+        </footer>
+    </div>
+    
+    <script>
+        function generateLinks() {
+            const shopName = document.getElementById('shopName').value.trim();
+            const area = document.getElementById('area').value.trim();
+            
+            if (!shopName) {
+                alert('店舗名を入力してください');
+                return;
+            }
+            
+            const baseQuery = area ? `${shopName} ${area}` : shopName;
+            
+            const searches = [
+                { label: 'Google マップ', query: `${baseQuery} Google マップ`, warning: false },
+                { label: '公式サイト', query: `${baseQuery} 公式サイト`, warning: false },
+                { label: 'Instagram', query: `${baseQuery} Instagram`, warning: false },
+                { label: 'X (Twitter)', query: `${baseQuery} Twitter`, warning: false },
+                { label: '食べログ', query: `${baseQuery} 食べログ`, warning: false },
+                { label: 'Retty', query: `${baseQuery} Retty`, warning: false },
+                { label: '閉店情報', query: `${baseQuery} 閉店`, warning: true },
+                { label: '移転情報', query: `${baseQuery} 移転`, warning: true },
+            ];
+            
+            const linkGrid = document.getElementById('linkGrid');
+            linkGrid.innerHTML = '';
+            
+            searches.forEach(search => {
+                const url = `https://www.google.com/search?q=${encodeURIComponent(search.query)}`;
+                const link = document.createElement('a');
+                link.href = url;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+                link.className = `link-btn${search.warning ? ' warning' : ''}`;
+                link.textContent = search.label;
+                linkGrid.appendChild(link);
+            });
+            
+            document.getElementById('queryText').textContent = baseQuery;
+            document.getElementById('results').classList.add('show');
+        }
+        
+        // Enterキーで実行
+        document.getElementById('shopName').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') generateLinks();
+        });
+        document.getElementById('area').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') generateLinks();
+        });
+    </script>
+</body>
+</html>
