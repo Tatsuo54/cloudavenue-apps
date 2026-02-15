@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Translation CSV Matcher v4</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #242836;
+    --border: #2e3345; --text: #e2e4eb; --text-dim: #8b90a0;
+    --accent: #4f8ff7; --accent-dim: #2a4a8a;
+    --green: #34d399; --green-dim: #064e3b;
+    --orange: #f59e0b; --orange-dim: #78350f;
+    --red: #ef4444; --red-dim: #7f1d1d;
+    --purple: #a78bfa; --purple-dim: #4c1d95;
+    --cyan: #22d3ee; --cyan-dim: #164e63;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', monospace;
+    background: var(--bg); color: var(--text);
+    height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+  }
+
+  .header {
+    padding: 8px 20px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+  }
+  .header h1 { font-size: 14px; font-weight: 600; }
+  .header .badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: var(--accent-dim); color: var(--accent); }
+  .edit-counter { font-size: 11px; padding: 2px 8px; border-radius: 4px; background: var(--orange-dim); color: var(--orange); }
+  .edit-counter.zero { background: var(--surface2); color: var(--text-dim); }
+  .en-indicator { font-size: 11px; padding: 2px 8px; border-radius: 4px; background: var(--cyan-dim); color: var(--cyan); }
+  .en-indicator.none { background: var(--surface2); color: var(--text-dim); }
+
+  .drop-overlay {
+    position: fixed; inset: 0; background: rgba(15,17,23,0.95);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000; flex-direction: column; gap: 24px;
+  }
+  .drop-overlay.hidden { display: none; }
+  .drop-boxes { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+  .drop-zone {
+    width: 260px; height: 150px; border: 2px dashed var(--border); border-radius: 10px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s; background: var(--surface);
+  }
+  .drop-zone:hover, .drop-zone.dragover { border-color: var(--accent); background: var(--surface2); }
+  .drop-zone.loaded { border-color: var(--green); border-style: solid; }
+  .drop-zone.optional { border-color: var(--border); }
+  .drop-zone.optional .label { color: var(--text-dim); }
+  .drop-zone .icon { font-size: 24px; margin-bottom: 6px; }
+  .drop-zone .label { font-size: 12px; color: var(--text-dim); text-align: center; line-height: 1.4; }
+  .drop-zone .filename { font-size: 10px; color: var(--green); margin-top: 4px; }
+  .drop-zone .info { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+  .drop-zone input { display: none; }
+  .drop-hint { font-size: 12px; color: var(--text-dim); text-align: center; line-height: 1.6; }
+
+  .base-url-row {
+    display: flex; align-items: center; gap: 8px; padding: 4px 20px;
+    font-size: 11px; color: var(--text-dim);
+    border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .base-url-row label { white-space: nowrap; }
+  .base-url-row input {
+    flex: 1; font-family: inherit; font-size: 11px; padding: 4px 8px;
+    border: 1px solid var(--border); border-radius: 4px;
+    background: var(--surface); color: var(--text); max-width: 400px;
+  }
+  .base-url-row input:focus { outline: none; border-color: var(--accent); }
+
+  .main-layout { display: flex; flex: 1; overflow: hidden; }
+
+  .preview-pane { flex: 1; position: relative; border-right: 1px solid var(--border); background: #fff; }
+  .preview-pane iframe { width: 100%; height: 100%; border: none; }
+  .preview-placeholder {
+    display: flex; align-items: center; justify-content: center;
+    height: 100%; color: var(--text-dim); font-size: 13px; background: var(--surface);
+  }
+
+  .side-panel { width: 480px; display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden; }
+
+  .panel-controls {
+    padding: 8px 12px; border-bottom: 1px solid var(--border);
+    display: flex; gap: 6px; align-items: center; flex-wrap: wrap; flex-shrink: 0;
+  }
+  .search-box {
+    font-family: inherit; font-size: 11px; padding: 5px 8px;
+    border: 1px solid var(--border); border-radius: 4px;
+    background: var(--surface); color: var(--text); width: 150px;
+  }
+  .search-box::placeholder { color: var(--text-dim); }
+  .search-box:focus { outline: none; border-color: var(--accent); }
+
+  .filter-group { display: flex; gap: 2px; }
+  .filter-btn {
+    font-family: inherit; font-size: 10px; padding: 3px 7px;
+    border: 1px solid var(--border); border-radius: 3px;
+    background: var(--surface2); color: var(--text-dim); cursor: pointer;
+  }
+  .filter-btn:hover { border-color: var(--accent); }
+  .filter-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
+  .panel-stats {
+    padding: 6px 12px; font-size: 10px; color: var(--text-dim);
+    border-bottom: 1px solid var(--border); display: flex; gap: 12px; flex-shrink: 0;
+  }
+  .sv { font-weight: 600; }
+  .sv-matched { color: var(--green); }
+  .sv-notrans { color: var(--red); }
+  .sv-dup { color: var(--purple); }
+  .sv-edited { color: var(--orange); }
+
+  .panel-list { flex: 1; overflow-y: auto; }
+
+  .panel-row {
+    padding: 8px 12px; border-bottom: 1px solid var(--border);
+    font-size: 11px; cursor: pointer; transition: background 0.1s;
+  }
+  .panel-row:hover { background: var(--surface); }
+  .panel-row.active { background: var(--accent-dim); }
+  .panel-row.modified { border-left: 3px solid var(--orange); }
+  .panel-row.auto-filled { border-left: 3px solid var(--green); }
+
+  .pr-top { display: flex; align-items: baseline; gap: 6px; margin-bottom: 3px; }
+  .pr-idx { font-size: 10px; color: var(--text-dim); min-width: 28px; text-align: right; }
+  .pr-text { color: var(--text); word-break: break-all; flex: 1; font-size: 11px; }
+
+  .pr-trans-display {
+    color: var(--text-dim); font-size: 10px; margin-left: 34px;
+    word-break: break-all; cursor: text;
+    padding: 2px 4px; border-radius: 3px;
+    border: 1px solid transparent; min-height: 18px;
+  }
+  .pr-trans-display:hover { border-color: var(--border); }
+  .pr-trans-display.empty { color: var(--red); font-style: italic; }
+  .pr-trans-display.changed { color: var(--orange); }
+
+  /* EN suggestion row */
+  .pr-en-suggest {
+    font-size: 10px; margin: 2px 0 0 34px; padding: 2px 6px;
+    background: var(--cyan-dim); border-radius: 3px;
+    color: var(--cyan); word-break: break-all;
+    display: flex; align-items: baseline; gap: 6px;
+  }
+  .pr-en-suggest .en-label { font-size: 9px; font-weight: 600; white-space: nowrap; }
+  .pr-en-suggest .en-text { flex: 1; }
+
+  .edit-area { margin: 6px 0 4px 34px; display: none; }
+  .edit-area.visible { display: block; }
+  .edit-area textarea {
+    width: 100%; font-family: inherit; font-size: 11px; padding: 6px 8px;
+    border: 1px solid var(--accent); border-radius: 4px;
+    background: var(--surface); color: var(--text); resize: vertical; min-height: 50px; line-height: 1.5;
+  }
+  .edit-area textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-dim); }
+  .edit-area .edit-actions { display: flex; gap: 6px; margin-top: 4px; align-items: center; flex-wrap: wrap; }
+  .edit-area .tag-hint { font-size: 9px; color: var(--text-dim); margin-left: auto; }
+
+  .btn-en-insert {
+    background: var(--cyan-dim) !important; border-color: var(--cyan) !important; color: var(--cyan) !important;
+    font-size: 10px !important; padding: 3px 8px !important;
+  }
+  .btn-en-insert:hover { opacity: 0.9; }
+
+  .pr-meta { display: flex; gap: 6px; margin-left: 34px; margin-top: 3px; align-items: center; }
+
+  .method-badge { font-size: 9px; padding: 1px 5px; border-radius: 3px; }
+  .method-EDITED { background: var(--green-dim); color: var(--green); }
+  .method-NO_TRANSLATION { background: var(--red-dim); color: var(--red); }
+  .method-AI { background: var(--accent-dim); color: var(--accent); }
+  .method-AUTO_PROPAGATED { background: var(--purple-dim); color: var(--purple); }
+
+  .loc-badge { font-size: 9px; padding: 1px 5px; border-radius: 3px; }
+  .loc-header { background: #1e3a5f; color: #7ab8f5; }
+  .loc-breadcrumb { background: #3b2f1e; color: #d4a54a; }
+  .loc-main { background: var(--green-dim); color: var(--green); }
+  .loc-sidebar { background: var(--purple-dim); color: var(--purple); }
+  .loc-footer { background: #3b1e2e; color: #e88faf; }
+  .loc-meta { background: #2a2a2a; color: #888; }
+  .loc-other { background: #2a2a2a; color: #888; }
+  .loc-unknown { background: var(--orange-dim); color: var(--orange); }
+
+  .dup-badge { font-size: 8px; padding: 1px 4px; border-radius: 2px; background: var(--purple-dim); color: var(--purple); }
+
+  .toolbar {
+    padding: 6px 12px; border-top: 1px solid var(--border);
+    display: flex; gap: 8px; flex-shrink: 0; align-items: center;
+  }
+  button {
+    font-family: inherit; font-size: 11px; padding: 5px 12px;
+    border: 1px solid var(--border); border-radius: 4px;
+    background: var(--surface2); color: var(--text); cursor: pointer; transition: all 0.1s;
+  }
+  button:hover { background: var(--accent-dim); border-color: var(--accent); }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button.primary:hover { opacity: 0.9; }
+  button.warn { background: var(--orange-dim); border-color: var(--orange); color: var(--orange); }
+</style>
+</head>
+<body>
+
+<div class="drop-overlay" id="dropOverlay">
+  <div style="font-size:16px;font-weight:600;margin-bottom:8px;">Translation CSV Matcher <span style="font-size:11px;color:var(--accent);">v4</span></div>
+  <div class="drop-boxes">
+    <div class="drop-zone" id="csvZone">
+      <div class="icon">📄</div>
+      <div class="label">CSV<br>（翻訳管理ツールからエクスポート）</div>
+      <div class="filename" id="csvName"></div>
+      <div class="info" id="csvInfo"></div>
+      <input type="file" id="csvInput" accept=".csv">
+    </div>
+    <div class="drop-zone" id="htmlZone">
+      <div class="icon">🇯🇵</div>
+      <div class="label">日本語 HTML<br>（対象ページ）</div>
+      <div class="filename" id="htmlName"></div>
+      <div class="info" id="htmlInfo"></div>
+      <input type="file" id="htmlInput" accept=".html,.htm">
+    </div>
+    <div class="drop-zone optional" id="enHtmlZone">
+      <div class="icon">🇬🇧</div>
+      <div class="label">英語 HTML<br>（任意・訳文自動挿入用）</div>
+      <div class="filename" id="enHtmlName"></div>
+      <div class="info" id="enHtmlInfo"></div>
+      <input type="file" id="enHtmlInput" accept=".html,.htm">
+    </div>
+  </div>
+  <div class="drop-hint">CSV＋日本語HTMLは必須。英語HTMLは任意（あれば訳文候補を自動提示）<br>CSVと日本語HTMLを読み込むとマッチング開始。英語HTMLは後からでもOK</div>
+</div>
+
+<div class="header">
+  <h1>Translation CSV Matcher</h1>
+  <span class="badge">v4</span>
+  <span class="edit-counter zero" id="editCounter">編集: 0件</span>
+  <span class="en-indicator none" id="enIndicator">EN HTML: なし</span>
+  <button id="reloadBtn" style="margin-left:auto;font-size:10px;padding:3px 8px;">ファイル再読込</button>
+  <button id="addEnBtn" style="font-size:10px;padding:3px 8px;">EN HTML追加</button>
+</div>
+
+<div class="base-url-row">
+  <label>Base URL:</label>
+  <input type="text" id="baseUrl" value="" placeholder="https://example.com">
+  <span style="font-size:10px;">※相対パスの画像・CSSを読み込むために使用</span>
+</div>
+
+<div class="main-layout">
+  <div class="preview-pane" id="previewPane">
+    <div class="preview-placeholder" id="previewPlaceholder">HTMLファイルを読み込むと表示されます</div>
+  </div>
+
+  <div class="side-panel">
+    <div class="panel-controls">
+      <input type="text" class="search-box" id="searchBox" placeholder="テキスト検索...">
+      <div class="filter-group">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="main">Main</button>
+        <button class="filter-btn" data-filter="NO_TRANSLATION">未翻訳</button>
+        <button class="filter-btn" data-filter="EDITED">済</button>
+        <button class="filter-btn" data-filter="modified">編集済</button>
+        <button class="filter-btn" data-filter="has_en">EN候補あり</button>
+      </div>
+    </div>
+    <div class="panel-stats" id="statsBar">
+      <span>全 <span class="sv" id="statTotal">0</span></span>
+      <span>マッチ <span class="sv sv-matched" id="statMatched">0</span></span>
+      <span>未翻訳 <span class="sv sv-notrans" id="statNoTrans">0</span></span>
+      <span>編集済 <span class="sv sv-edited" id="statModified">0</span></span>
+      <span>自動反映 <span class="sv" style="color:var(--green)" id="statAuto">0</span></span>
+      <span>EN候補 <span class="sv" style="color:var(--cyan)" id="statEnAvail">0</span></span>
+    </div>
+    <div class="panel-list" id="panelList"></div>
+    <div class="toolbar">
+      <button class="primary" id="exportBtn">翻訳CSV出力</button>
+      <button id="exportWorkBtn">作業用CSV出力</button>
+      <button id="autoInsertBtn" disabled>EN一括挿入</button>
+      <button id="toggleBadgesBtn">バッジ</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== State =====
+let csvData = null, csvRawLines = null, csvHeaderLine = null, csvFileName = '';
+let htmlRaw = null, enHtmlRaw = null;
+let matchResults = null;
+let currentFilter = 'all', searchQuery = '', badgesVisible = true, activeRowIdx = null;
+const edits = {};
+
+// EN HTML matching: csvIndex → english text
+let enTextMap = {};
+
+// ===== CSV =====
+function parseCSVLine(line) {
+  const fields = []; let current = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') { if (inQ && line[i+1] === '"') { current += '""'; i++; } else { inQ = !inQ; current += '"'; } }
+    else if (ch === ',' && !inQ) { fields.push(current); current = ''; }
+    else current += ch;
+  }
+  fields.push(current); return fields;
+}
+function unquote(f) { return (f.startsWith('"') && f.endsWith('"')) ? f.slice(1,-1).replace(/""/g,'"') : f; }
+
+function replaceCSVField(rawLine, fieldIdx, newValue) {
+  const fields = parseCSVLine(rawLine);
+  const orig = fields[fieldIdx] || '';
+  const needsQ = newValue.includes(',') || newValue.includes('"') || newValue.includes('\n');
+  const wasQ = orig.startsWith('"') && orig.endsWith('"');
+  
+  if (newValue === '') {
+    fields[fieldIdx] = '""';
+  } else if (needsQ || wasQ) {
+    fields[fieldIdx] = '"' + newValue.replace(/"/g,'""') + '"';
+  } else {
+    fields[fieldIdx] = newValue;
+  }
+  return fields.join(',');
+}
+
+function parseCSV(text) {
+  text = text.replace(/^\uFEFF/,'');
+  const rawLines = []; let current = '', inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === '"') inQ = !inQ;
+    if (ch === '\n' && !inQ) { rawLines.push(current.replace(/\r$/,'')); current = ''; }
+    else current += ch;
+  }
+  if (current.trim()) rawLines.push(current.replace(/\r$/,''));
+  csvHeaderLine = rawLines[0];
+  csvRawLines = rawLines.slice(1).filter(l => l.trim());
+  const rows = [];
+  for (let i = 0; i < csvRawLines.length; i++) {
+    const f = parseCSVLine(csvRawLines[i]);
+    if (f.length < 7) continue;
+    rows.push({ original_text: unquote(f[1]), translated_text: unquote(f[3]), translation_method: unquote(f[4]), _index: i+2, _rawLineIdx: i });
+  }
+  return rows;
+}
+
+function stripTags(s) { return s.replace(/<[^>]+>/g,'').trim(); }
+
+function replaceTextInTagged(original, newText) {
+  original = original.replace(/<br\s*\/?>/gi, '');
+  if (!/<[^>]+>/.test(original)) return newText;
+  const parts = original.split(/(<[^>]+>)/);
+  const structure = []; let hasText = false;
+  for (const p of parts) {
+    if (p.match(/^<(hr|img|wbr)\s*\/?>$/i)) structure.push({type:'inline',value:p});
+    else if (p.match(/^<[^>]+>$/)) structure.push({type:'tag',value:p});
+    else if (p.trim()) { structure.push({type:'text',value:p}); hasText = true; }
+    else structure.push({type:'ws',value:p});
+  }
+  if (!hasText) return original;
+  let replaced = false;
+  return structure.map(s => { if (s.type==='text'){if(!replaced){replaced=true;return newText;}return '';} return s.value; }).join('');
+}
+
+// ===== HTML =====
+function rewriteURLs(html, baseUrl) {
+  if (!baseUrl.endsWith('/')) baseUrl += '/';
+  html = html.replace(/((?:href|src|content)\s*=\s*["'])\/(?!\/)/gi, `$1${baseUrl}`);
+  html = html.replace(/(url\(\s*["']?)\/(?!\/)/gi, `$1${baseUrl}`);
+  return html;
+}
+
+function extractTextsWithPath(html) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const results = [];
+  const skip = new Set(['SCRIPT','STYLE','NOSCRIPT']);
+
+  function getRegion(el) {
+    let n = el;
+    while (n && n !== doc.body) {
+      const cls = (n.className||'').toString();
+      if (n.tagName==='HEADER'||cls.includes('l-head')) return 'header';
+      if (n.tagName==='FOOTER'||cls.includes('l-foot')) return 'footer';
+      if (cls.includes('bread-crumb')) return 'breadcrumb';
+      if (n.tagName==='MAIN'||cls.includes('l-body-main')) return 'main';
+      if (cls.includes('l-body-sub')||cls.includes('nav-local')) return 'sidebar';
+      if (cls.includes('lang-identification')||cls.includes('consent')||cls.includes('datasign')) return 'other';
+      n = n.parentElement;
+    }
+    return 'unknown';
+  }
+
+  function getStructuralPath(el) {
+    const parts = [];
+    let n = el;
+    for (let i = 0; i < 8 && n && n !== doc.body; i++) {
+      let part = n.tagName.toLowerCase();
+      if (n.id) part += '#' + n.id;
+      else if (n.className && typeof n.className === 'string') {
+        const cls = n.className.split(/\s+/).filter(c=>c).slice(0,2).join('.');
+        if (cls) part += '.' + cls;
+      }
+      if (n.parentElement) {
+        const siblings = Array.from(n.parentElement.children).filter(s => s.tagName === n.tagName);
+        if (siblings.length > 1) {
+          const idx = siblings.indexOf(n);
+          part += '[' + idx + ']';
+        }
+      }
+      parts.unshift(part);
+      n = n.parentElement;
+    }
+    return parts.join('>');
+  }
+
+  function walk(node) {
+    if (node.nodeType === 3) {
+      const text = node.textContent.trim();
+      if (text) {
+        const parent = node.parentElement;
+        let textChildIdx = 0;
+        for (const ch of parent.childNodes) {
+          if (ch === node) break;
+          if (ch.nodeType === 3 && ch.textContent.trim()) textChildIdx++;
+        }
+        results.push({
+          text, region: getRegion(parent), index: results.length,
+          path: getStructuralPath(parent),
+          textChildIdx
+        });
+      }
+    } else if (node.nodeType === 1 && !skip.has(node.tagName)) {
+      for (const c of node.childNodes) walk(c);
+    }
+  }
+  walk(doc.body);
+  return results;
+}
+
+// ===== EN HTML matching =====
+function buildEnTextMap() {
+  enTextMap = {};
+  if (!enHtmlRaw || !htmlRaw || !matchResults) return;
+
+  const jpTexts = extractTextsWithPath(htmlRaw);
+  const enTexts = extractTextsWithPath(enHtmlRaw);
+  const enByPath = {};
+  for (const et of enTexts) {
+    const key = et.path + '|' + et.textChildIdx;
+    if (!enByPath[key]) enByPath[key] = [];
+    enByPath[key].push(et);
+  }
+
+  const jpTextToPath = {};
+  const jpPathConsumed = {};
+  for (const jt of jpTexts) {
+    const key = jt.path + '|' + jt.textChildIdx;
+    if (!jpTextToPath[jt.text]) jpTextToPath[jt.text] = [];
+    jpTextToPath[jt.text].push(key);
+  }
+
+  for (const mr of matchResults) {
+    const jpText = mr.csvText;
+    const paths = jpTextToPath[jpText];
+    if (!paths || !paths.length) {
+      const cleaned = jpText.replace(/新しいタブで開く/g,'').replace(/\(別ウィンドウで開く\)/g,'').replace(/\(PDFを開く\)/g,'').replace(/\(\d+\s?KB\)/g,'').trim();
+      if (cleaned !== jpText && jpTextToPath[cleaned]) {
+        const cPaths = jpTextToPath[cleaned];
+        for (const p of cPaths) {
+          if (jpPathConsumed[p]) continue;
+          const enCands = enByPath[p];
+          if (enCands && enCands.length) {
+            enTextMap[mr.csvIndex] = enCands[0].text;
+            jpPathConsumed[p] = true;
+            break;
+          }
+        }
+      }
+      continue;
+    }
+
+    for (const p of paths) {
+      if (jpPathConsumed[p]) continue;
+      const enCands = enByPath[p];
+      if (enCands && enCands.length) {
+        if (enCands[0].text !== jpText) {
+          enTextMap[mr.csvIndex] = enCands[0].text;
+        }
+        jpPathConsumed[p] = true;
+        break;
+      }
+    }
+  }
+
+  const cnt = Object.keys(enTextMap).length;
+  const ind = document.getElementById('enIndicator');
+  ind.textContent = `EN HTML: ${cnt}件マッチ`;
+  ind.classList.remove('none');
+  document.getElementById('autoInsertBtn').disabled = cnt === 0;
+
+  updateStats();
+  renderPanel();
+}
+
+// ===== Matching =====
+function performMatching() {
+  if (!csvData || !htmlRaw) return;
+  const htmlTexts = extractTextsWithPath(htmlRaw);
+  const htmlLookup = {};
+  for (const ht of htmlTexts) { if (!htmlLookup[ht.text]) htmlLookup[ht.text] = []; htmlLookup[ht.text].push(ht); }
+  const consumed = new Set();
+  const csvTextCount = {};
+  for (const r of csvData) { const t = stripTags(r.original_text); csvTextCount[t] = (csvTextCount[t]||0)+1; }
+  const csvTextOcc = {};
+
+  matchResults = csvData.map(row => {
+    const csvText = stripTags(row.original_text);
+    const isDup = csvTextCount[csvText] > 1;
+    csvTextOcc[csvText] = (csvTextOcc[csvText]||0)+1;
+    let match = null;
+    const cands = htmlLookup[csvText];
+    if (cands) { for (const c of cands) { if (!consumed.has(c.index)){match=c;consumed.add(c.index);break;} } if (!match&&cands.length) match=cands[0]; }
+    if (!match) {
+      const cleaned = csvText.replace(/新しいタブで開く/g,'').replace(/\(別ウィンドウで開く\)/g,'').replace(/\(PDFを開く\)/g,'').replace(/\(\d+\s?KB\)/g,'').trim();
+      if (cleaned!==csvText) { const pc=htmlLookup[cleaned]; if(pc){for(const c of pc){if(!consumed.has(c.index)){match={...c,partial:true};consumed.add(c.index);break;}}if(!match&&pc.length)match={...pc[0],partial:true};} }
+    }
+    if (!match && csvText.length > 10) {
+      for (const ht of htmlTexts) { if (consumed.has(ht.index)) continue; if (ht.text.includes(csvText)||csvText.includes(ht.text)){match={...ht,partial:true};consumed.add(ht.index);break;} }
+    }
+    return { csvIndex: row._index, csvRow: row, csvText, match, isDup, occNum: csvTextOcc[csvText], occTotal: csvTextCount[csvText] };
+  });
+
+  for (const mr of matchResults) {
+    const method = mr.csvRow.translation_method;
+    if (method === 'NO_TRANSLATION' || method === 'AI') continue;
+
+    const transText = stripTags(mr.csvRow.translated_text);
+    const origText = mr.csvText;
+    if (transText && transText !== origText) {
+      edits[mr.csvIndex] = { newText: transText, tagged: mr.csvRow.translated_text, _auto: true };
+    }
+  }
+
+  updateStats();
+  renderPanel();
+  renderPreview();
+
+  if (enHtmlRaw) buildEnTextMap();
+}
+
+// ===== Preview =====
+function renderPreview() {
+  if (!htmlRaw || !matchResults) return;
+  const baseUrl = document.getElementById('baseUrl').value.trim() || '';
+  let html = rewriteURLs(htmlRaw, baseUrl);
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const skip = new Set(['SCRIPT','STYLE','NOSCRIPT']);
+  const textToMatches = {}, cleanedToMatches = {};
+  for (const mr of matchResults) {
+    if (!textToMatches[mr.csvText]) textToMatches[mr.csvText] = [];
+    textToMatches[mr.csvText].push(mr);
+    const cl = mr.csvText.replace(/新しいタブで開く/g,'').replace(/\(別ウィンドウで開く\)/g,'').replace(/\(PDFを開く\)/g,'').replace(/\(\d+\s?KB\)/g,'').trim();
+    if (cl!==mr.csvText){if(!cleanedToMatches[cl])cleanedToMatches[cl]=[];cleanedToMatches[cl].push(mr);}
+  }
+  const consumed = {};
+
+  function walk(node) {
+    if (node.nodeType===3) {
+      const text = node.textContent.trim();
+      if (!text) return;
+      let matches = textToMatches[text] || cleanedToMatches[text];
+      if (!matches||!matches.length) return;
+      consumed[text] = (consumed[text]||0);
+      const mr = matches[consumed[text]%matches.length]; consumed[text]++;
+      const method = mr.csvRow.translation_method;
+      const isModified = edits[mr.csvIndex] !== undefined;
+      let color = '#4f8ff7';
+      if (isModified) color = '#f59e0b';
+      else if (method==='EDITED') color = '#34d399';
+      else if (method==='NO_TRANSLATION') color = '#ef4444';
+      else if (method==='AUTO_PROPAGATED') color = '#a78bfa';
+
+      const badge = doc.createElement('span');
+      badge.className = 'csv-match-badge'; badge.dataset.csvIndex = mr.csvIndex;
+      badge.setAttribute('id', 'csv-badge-'+mr.csvIndex);
+      badge.style.cssText = `display:inline-block;font-family:monospace;font-size:10px;font-weight:700;background:${color};color:#fff;padding:1px 4px;border-radius:3px;margin-left:2px;cursor:pointer;vertical-align:middle;line-height:1;position:relative;z-index:9999;white-space:nowrap;`;
+      const transText = isModified ? edits[mr.csvIndex].newText : stripTags(mr.csvRow.translated_text);
+      badge.textContent = '#'+mr.csvIndex;
+      badge.title = `Row ${mr.csvIndex} | ${isModified?'MODIFIED':method}\n${transText.substring(0,80)}`;
+      const parent = node.parentNode;
+      if (parent) {
+        parent.insertBefore(badge, node.nextSibling);
+        if (isModified) {
+          const ts = doc.createElement('span'); ts.className = 'csv-trans-preview';
+          ts.style.cssText = `display:inline-block;font-size:11px;color:#1a1d27;background:#fde68a;padding:1px 6px;border-radius:3px;margin-left:4px;font-family:Arial,Helvetica,sans-serif;max-width:360px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;border:1px solid #f59e0b;`;
+          ts.textContent = transText.substring(0,60);
+          parent.insertBefore(ts, badge.nextSibling);
+        }
+      }
+    } else if (node.nodeType===1&&!skip.has(node.tagName)) {
+      const children = Array.from(node.childNodes); for (const c of children) walk(c);
+    }
+  }
+  walk(doc.body);
+
+  doc.querySelectorAll('script').forEach(s => s.remove());
+
+  const script = doc.createElement('script');
+  script.textContent = `document.addEventListener('click',function(e){if(e.target.classList.contains('csv-match-badge')){e.preventDefault();e.stopPropagation();window.parent.postMessage({type:'badge-click',csvIndex:parseInt(e.target.dataset.csvIndex)},'*');return;}var l=e.target.closest('a,button[onclick],[role="link"]');if(l){e.preventDefault();e.stopPropagation();}},true);document.addEventListener('submit',function(e){e.preventDefault();},true);window.addEventListener('message',function(e){if(e.data.type==='scroll-to-badge'){var b=document.getElementById('csv-badge-'+e.data.csvIndex);if(b){b.scrollIntoView({behavior:'smooth',block:'center'});b.style.outline='3px solid #f59e0b';b.style.outlineOffset='2px';setTimeout(function(){b.style.outline='';},3000);}}if(e.data.type==='toggle-badges'){document.querySelectorAll('.csv-match-badge,.csv-trans-preview').forEach(function(b){b.style.display=e.data.visible?'inline-block':'none';});}});`;
+  doc.body.appendChild(script);
+
+  const base = doc.createElement('base');
+  base.href = baseUrl.endsWith('/')?baseUrl:baseUrl+'/';
+  doc.head.insertBefore(base, doc.head.firstChild);
+
+  const blob = new Blob(['<!DOCTYPE html>'+doc.documentElement.outerHTML],{type:'text/html;charset=utf-8'});
+  const pane = document.getElementById('previewPane');
+  const ph = document.getElementById('previewPlaceholder'); if (ph) ph.remove();
+  let iframe = pane.querySelector('iframe');
+  if (!iframe){iframe=document.createElement('iframe');iframe.id='previewFrame';iframe.sandbox='allow-scripts allow-same-origin';pane.appendChild(iframe);}
+  iframe.src = URL.createObjectURL(blob);
+}
+
+// ===== Panel =====
+function updateStats() {
+  if (!matchResults) return;
+  document.getElementById('statTotal').textContent = matchResults.length;
+  document.getElementById('statMatched').textContent = matchResults.filter(r=>r.match).length;
+  document.getElementById('statNoTrans').textContent = matchResults.filter(r=>r.csvRow.translation_method==='NO_TRANSLATION').length;
+  const autoCount = Object.values(edits).filter(e=>e._auto).length;
+  const manualCount = Object.keys(edits).length - autoCount;
+  document.getElementById('statModified').textContent = manualCount;
+  document.getElementById('statAuto').textContent = autoCount;
+  document.getElementById('statEnAvail').textContent = Object.keys(enTextMap).length;
+  const el = document.getElementById('editCounter');
+  el.textContent = `手動編集: ${manualCount}件`; el.classList.toggle('zero',manualCount===0);
+}
+
+function renderPanel() {
+  if (!matchResults) return;
+  let filtered = matchResults;
+  if (currentFilter==='main') filtered=filtered.filter(r=>r.match&&r.match.region==='main');
+  else if (currentFilter==='NO_TRANSLATION') filtered=filtered.filter(r=>r.csvRow.translation_method==='NO_TRANSLATION');
+  else if (currentFilter==='EDITED') filtered=filtered.filter(r=>r.csvRow.translation_method==='EDITED');
+  else if (currentFilter==='duplicate') filtered=filtered.filter(r=>r.isDup);
+  else if (currentFilter==='modified') filtered=filtered.filter(r=>edits[r.csvIndex]!==undefined);
+  else if (currentFilter==='has_en') filtered=filtered.filter(r=>enTextMap[r.csvIndex]!==undefined);
+
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    filtered = filtered.filter(r=>r.csvText.toLowerCase().includes(q)||stripTags(r.csvRow.translated_text).toLowerCase().includes(q));
+  }
+
+  const list = document.getElementById('panelList');
+  if (!filtered.length){list.innerHTML='<div style="padding:20px;text-align:center;color:var(--text-dim);font-size:12px;">該当なし</div>';return;}
+
+  const rl = {header:'ヘッダー',footer:'フッター',breadcrumb:'パンくず',main:'メイン',sidebar:'サイドバー',meta:'メタ',other:'その他',unknown:'未特定'};
+
+  list.innerHTML = filtered.map(r => {
+    const method = r.csvRow.translation_method;
+    const region = r.match ? r.match.region : 'unknown';
+    const dupBadge = r.isDup ? `<span class="dup-badge">${r.occNum}/${r.occTotal}</span>` : '';
+    const isModified = edits[r.csvIndex] !== undefined;
+    const isAuto = isModified && edits[r.csvIndex]._auto;
+    const isManual = isModified && !isAuto;
+    const currentTrans = isModified ? edits[r.csvIndex].newText : stripTags(r.csvRow.translated_text);
+    const transClass = isManual ? 'changed' : (isAuto ? '' : (!currentTrans ? 'empty' : ''));
+    const transDisplay = currentTrans || '(未翻訳)';
+    const enSuggest = enTextMap[r.csvIndex];
+
+    const enRow = enSuggest ? `<div class="pr-en-suggest"><span class="en-label">EN:</span><span class="en-text">${esc(enSuggest.substring(0,100))}</span></div>` : '';
+    const enBtn = enSuggest ? `<button class="btn-en-insert" onclick="insertEn(${r.csvIndex})">EN挿入</button>` : '';
+    const rowModClass = isManual ? ' modified' : (isAuto ? ' auto-filled' : '');
+
+    return `
+      <div class="panel-row${r.csvIndex===activeRowIdx?' active':''}${rowModClass}" data-idx="${r.csvIndex}">
+        <div class="pr-top">
+          <span class="pr-idx">${r.csvIndex}</span>
+          <span class="pr-text">${esc(r.csvText.substring(0,100))}${r.csvText.length>100?'…':''}</span>
+          ${dupBadge}
+        </div>
+        <div class="pr-trans-display ${transClass}" data-idx="${r.csvIndex}">${esc(transDisplay.substring(0,120))}</div>
+        ${enRow}
+        <div class="edit-area" id="edit-${r.csvIndex}">
+          <textarea id="textarea-${r.csvIndex}">${esc(currentTrans)}</textarea>
+          <div class="edit-actions">
+            <button class="primary" onclick="saveEdit(${r.csvIndex})">保存</button>
+            <button onclick="cancelEdit(${r.csvIndex})">取消</button>
+            ${isManual ? `<button class="warn" onclick="revertEdit(${r.csvIndex})">元に戻す</button>` : ''}
+            ${enBtn}
+            <span class="tag-hint">テキストのみ編集（タグ自動保持）</span>
+          </div>
+        </div>
+        <div class="pr-meta">
+          <span class="method-badge method-${method}">${method.replace('_',' ')}</span>
+          <span class="loc-badge loc-${region}">${rl[region]||region}</span>
+          ${isManual?'<span style="font-size:9px;color:var(--orange);">✎ 編集済</span>':''}${isAuto?'<span style="font-size:9px;color:var(--green);">✓ 反映済</span>':''}
+        </div>
+      </div>`;
+  }).join('');
+
+  list.querySelectorAll('.panel-row').forEach(el => {
+    el.addEventListener('click', e => {
+      if (e.target.closest('.edit-area')||e.target.closest('.pr-trans-display')||e.target.closest('.pr-en-suggest')) return;
+      const idx = parseInt(el.dataset.idx); activeRowIdx = idx;
+      list.querySelectorAll('.panel-row').forEach(r=>r.classList.remove('active'));
+      el.classList.add('active');
+      const iframe = document.getElementById('previewFrame');
+      if (iframe&&iframe.contentWindow) iframe.contentWindow.postMessage({type:'scroll-to-badge',csvIndex:idx},'*');
+    });
+  });
+  list.querySelectorAll('.pr-trans-display').forEach(el => {
+    el.addEventListener('click', e => { e.stopPropagation(); openEdit(parseInt(el.dataset.idx)); });
+  });
+}
+
+function openEdit(idx) {
+  document.querySelectorAll('.edit-area.visible').forEach(ea=>ea.classList.remove('visible'));
+  const ea = document.getElementById('edit-'+idx);
+  if (ea){ea.classList.add('visible'); const ta=document.getElementById('textarea-'+idx); if(ta){ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length);}}
+}
+
+function insertEn(idx) {
+  const enText = enTextMap[idx];
+  if (!enText) return;
+  const ea = document.getElementById('edit-'+idx);
+  if (!ea || !ea.classList.contains('visible')) openEdit(idx);
+  const ta = document.getElementById('textarea-'+idx);
+  if (ta) { ta.value = enText; ta.focus(); }
+}
+
+function saveEdit(idx) {
+  const ta = document.getElementById('textarea-'+idx); if (!ta) return;
+  const newText = ta.value.trim();
+  const mr = matchResults.find(r=>r.csvIndex===idx); if (!mr) return;
+  
+  const textWithBr = newText.replace(/\r?\n/g, '<br>');
+  const tagged = replaceTextInTagged(mr.csvRow.translated_text, textWithBr);
+  
+  edits[idx] = { newText, tagged };
+  document.getElementById('edit-'+idx)?.classList.remove('visible');
+  const sp = document.getElementById('panelList').scrollTop;
+  updateStats(); renderPanel(); renderPreview();
+  document.getElementById('panelList').scrollTop = sp;
+}
+
+function cancelEdit(idx) { document.getElementById('edit-'+idx)?.classList.remove('visible'); }
+
+function revertEdit(idx) {
+  const mr = matchResults.find(r=>r.csvIndex===idx);
+  if (mr) {
+    const method = mr.csvRow.translation_method;
+    const transText = stripTags(mr.csvRow.translated_text);
+    if (method !== 'NO_TRANSLATION' && method !== 'AI' && transText && transText !== mr.csvText) {
+      edits[idx] = { newText: transText, tagged: mr.csvRow.translated_text, _auto: true };
+    } else {
+      delete edits[idx];
+    }
+  } else {
+    delete edits[idx];
+  }
+  document.getElementById('edit-'+idx)?.classList.remove('visible');
+  const sp = document.getElementById('panelList').scrollTop;
+  updateStats(); renderPanel(); renderPreview();
+  document.getElementById('panelList').scrollTop = sp;
+}
+
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function autoInsertEn() {
+  const hasEn = matchResults.filter(r => enTextMap[r.csvIndex]);
+  const noEdit = hasEn.filter(r => !edits[r.csvIndex]);
+  const autoOnly = hasEn.filter(r => edits[r.csvIndex] && edits[r.csvIndex]._auto);
+  const manual = hasEn.filter(r => edits[r.csvIndex] && !edits[r.csvIndex]._auto);
+  const targets = [...noEdit, ...autoOnly];
+  if (!targets.length) {
+    alert(manual.length ? `EN候補${hasEn.length}件中、手動編集済み${manual.length}件のみのため対象なし` : '挿入対象がありません');
+    return;
+  }
+  let msg = `${targets.length}件にEN HTMLのテキストを挿入します。`;
+  if (autoOnly.length) msg += `\n（うち${autoOnly.length}件は既存訳文をEN HTMLで上書き）`;
+  if (manual.length) msg += `\n※手動編集済み${manual.length}件はスキップ`;
+  if (!confirm(msg + '\n\n続行しますか？')) return;
+  for (const mr of targets) {
+    const enText = enTextMap[mr.csvIndex];
+    const textWithBr = enText.replace(/\r?\n/g, '<br>');
+    const tagged = replaceTextInTagged(mr.csvRow.translated_text, textWithBr);
+    edits[mr.csvIndex] = { newText: enText, tagged };
+  }
+  updateStats(); renderPanel(); renderPreview();
+}
+
+// ===== Export =====
+function exportTransCSV() {
+  if (!csvData||!csvRawLines) return;
+  let output = '\uFEFF' + csvHeaderLine + '\n';
+  for (const row of csvData) {
+    let rawLine = csvRawLines[row._rawLineIdx];
+    if (edits[row._index] !== undefined) {
+      const newTagged = edits[row._index].tagged;
+      rawLine = replaceCSVField(rawLine, 3, newTagged);
+      
+      // ★元の翻訳からテキストが変更された場合は、メソッドを「EDITED」に上書き
+      if (newTagged !== row.translated_text) {
+        rawLine = replaceCSVField(rawLine, 4, 'EDITED');
+      }
+    }
+    output += rawLine + '\n';
+  }
+  const blob = new Blob([output],{type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = csvFileName.replace(/\.csv$/i,'') + '_edited.csv'; a.click();
+}
+function exportWorkCSV() {
+  if (!matchResults) return;
+  const headers = ['csv_row','original_text','current_translation','edited_translation','en_html_text','translation_method','html_region'];
+  const rows = matchResults.map(r=>{
+    const mod = edits[r.csvIndex]; const en = enTextMap[r.csvIndex]||'';
+    let method = r.csvRow.translation_method;
+    
+    // ★作業用CSVも同様に、変更された場合は「EDITED」と出力
+    if (mod && mod.tagged !== r.csvRow.translated_text) {
+      method = 'EDITED';
+    }
+    
+    return [r.csvIndex,r.csvText,stripTags(r.csvRow.translated_text),mod?mod.newText:'',en,method,r.match?r.match.region:''];
+  });
+  let csv = '\uFEFF'+headers.join(',')+'\n';
+  for (const row of rows) csv += row.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')+'\n';
+  const blob = new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='translation_work.csv'; a.click();
+}
+
+// ===== File Loading =====
+function setupDrop(zoneId, inputId, onLoad) {
+  const zone = document.getElementById(zoneId), input = document.getElementById(inputId);
+  zone.addEventListener('click',()=>input.click());
+  zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('dragover');});
+  zone.addEventListener('dragleave',()=>zone.classList.remove('dragover'));
+  zone.addEventListener('drop',e=>{e.preventDefault();zone.classList.remove('dragover');if(e.dataTransfer.files.length)onLoad(e.dataTransfer.files[0]);});
+  input.addEventListener('change',e=>{if(e.target.files.length)onLoad(e.target.files[0]);});
+}
+function loadCSV(file) {
+  csvFileName = file.name;
+  const r = new FileReader();
+  r.onload = e => {
+    csvData = parseCSV(e.target.result);
+    document.getElementById('csvZone').classList.add('loaded');
+    document.getElementById('csvName').textContent = file.name;
+    document.getElementById('csvInfo').textContent = csvData.length+' 行';
+    checkReady();
+  };
+  r.readAsText(file,'UTF-8');
+}
+function loadHTML(file) {
+  const r = new FileReader();
+  r.onload = e => {
+    htmlRaw = e.target.result;
+    document.getElementById('htmlZone').classList.add('loaded');
+    document.getElementById('htmlName').textContent = file.name;
+    document.getElementById('htmlInfo').textContent = (htmlRaw.length/1024).toFixed(0)+' KB';
+    const m = htmlRaw.match(/<meta\s+property="og:url"\s+content="(https?:\/\/[^"]+)"/i);
+    if (m) try{document.getElementById('baseUrl').value=new URL(m[1]).origin;}catch(e){}
+    checkReady();
+  };
+  r.readAsText(file,'UTF-8');
+}
+function loadEnHTML(file) {
+  const r = new FileReader();
+  r.onload = e => {
+    enHtmlRaw = e.target.result;
+    document.getElementById('enHtmlZone').classList.add('loaded');
+    document.getElementById('enHtmlName').textContent = file.name;
+    document.getElementById('enHtmlInfo').textContent = (enHtmlRaw.length/1024).toFixed(0)+' KB';
+    if (matchResults) buildEnTextMap();
+  };
+  r.readAsText(file,'UTF-8');
+}
+function checkReady() {
+  if (csvData && htmlRaw) { document.getElementById('dropOverlay').classList.add('hidden'); performMatching(); }
+}
+
+// ===== Events =====
+setupDrop('csvZone','csvInput',loadCSV);
+setupDrop('htmlZone','htmlInput',loadHTML);
+setupDrop('enHtmlZone','enHtmlInput',loadEnHTML);
+
+document.getElementById('searchBox').addEventListener('input',e=>{searchQuery=e.target.value;renderPanel();});
+document.querySelectorAll('.filter-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active'); currentFilter=btn.dataset.filter; renderPanel();
+  });
+});
+
+document.getElementById('exportBtn').addEventListener('click',exportTransCSV);
+document.getElementById('exportWorkBtn').addEventListener('click',exportWorkCSV);
+document.getElementById('autoInsertBtn').addEventListener('click',autoInsertEn);
+document.getElementById('toggleBadgesBtn').addEventListener('click',()=>{
+  badgesVisible=!badgesVisible;
+  const iframe=document.getElementById('previewFrame');
+  if(iframe&&iframe.contentWindow) iframe.contentWindow.postMessage({type:'toggle-badges',visible:badgesVisible},'*');
+});
+document.getElementById('reloadBtn').addEventListener('click',()=>{
+  if(Object.keys(edits).length>0&&!confirm(`編集済み${Object.keys(edits).length}件があります。再読込すると失われます。`))return;
+  document.getElementById('dropOverlay').classList.remove('hidden');
+});
+document.getElementById('addEnBtn').addEventListener('click',()=>{
+  document.getElementById('enHtmlInput').click();
+});
+const hiddenEnInput = document.createElement('input');
+hiddenEnInput.type='file'; hiddenEnInput.accept='.html,.htm'; hiddenEnInput.style.display='none';
+document.body.appendChild(hiddenEnInput);
+document.getElementById('addEnBtn').addEventListener('click',()=>{
+  document.getElementById('enHtmlInput').click();
+});
+document.getElementById('enHtmlInput').addEventListener('change',e=>{
+  if(e.target.files.length) loadEnHTML(e.target.files[0]);
+});
+
+document.getElementById('baseUrl').addEventListener('change',()=>{if(matchResults)renderPreview();});
+
+window.addEventListener('message',e=>{
+  if(e.data&&e.data.type==='badge-click'){
+    const idx=e.data.csvIndex; activeRowIdx=idx; renderPanel();
+    const row=document.querySelector(`.panel-row[data-idx="${idx}"]`);
+    if(row) row.scrollIntoView({behavior:'smooth',block:'center'});
+    setTimeout(()=>openEdit(idx),100);
+  }
+});
+window.addEventListener('beforeunload',e=>{if(Object.keys(edits).length>0){e.preventDefault();e.returnValue='';}});
+</script>
+</body>
+</html>
