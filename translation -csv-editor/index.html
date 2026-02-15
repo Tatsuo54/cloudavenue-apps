@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Translation CSV Matcher v4</title>
+<title>Translation CSV Editor v4.9</title>
 <style>
   :root {
     --bg: #0f1117; --surface: #1a1d27; --surface2: #242836;
@@ -108,7 +108,6 @@
   .sv { font-weight: 600; }
   .sv-matched { color: var(--green); }
   .sv-notrans { color: var(--red); }
-  .sv-dup { color: var(--purple); }
   .sv-edited { color: var(--orange); }
 
   .panel-list { flex: 1; overflow-y: auto; }
@@ -202,7 +201,7 @@
 <body>
 
 <div class="drop-overlay" id="dropOverlay">
-  <div style="font-size:16px;font-weight:600;margin-bottom:8px;">Translation CSV Matcher <span style="font-size:11px;color:var(--accent);">v4</span></div>
+  <div style="font-size:16px;font-weight:600;margin-bottom:8px;">Translation CSV Editor <span style="font-size:11px;color:var(--accent);">v4.9</span></div>
   <div class="drop-boxes">
     <div class="drop-zone" id="csvZone">
       <div class="icon">📄</div>
@@ -230,8 +229,8 @@
 </div>
 
 <div class="header">
-  <h1>Translation CSV Matcher</h1>
-  <span class="badge">v4</span>
+  <h1>Translation CSV Editor</h1>
+  <span class="badge">v4.9</span>
   <span class="edit-counter zero" id="editCounter">編集: 0件</span>
   <span class="en-indicator none" id="enIndicator">EN HTML: なし</span>
   <button id="reloadBtn" style="margin-left:auto;font-size:10px;padding:3px 8px;">ファイル再読込</button>
@@ -800,6 +799,9 @@ function exportTransCSV() {
         rawLine = replaceCSVField(rawLine, 4, 'EDITED');
       }
     }
+    // 空フィールドを""に変換（元CSVとの差分を防ぐ）
+    rawLine = rawLine.replace(/(^|,)(?=,|$)/g, '$1""');
+    rawLine = rawLine.replace(/(^|,)(?=,|$)/g, '$1""');
     output += rawLine + '\n';
   }
   const blob = new Blob([output],{type:'text/csv;charset=utf-8'});
@@ -902,15 +904,6 @@ document.getElementById('reloadBtn').addEventListener('click',()=>{
 });
 document.getElementById('addEnBtn').addEventListener('click',()=>{
   document.getElementById('enHtmlInput').click();
-});
-const hiddenEnInput = document.createElement('input');
-hiddenEnInput.type='file'; hiddenEnInput.accept='.html,.htm'; hiddenEnInput.style.display='none';
-document.body.appendChild(hiddenEnInput);
-document.getElementById('addEnBtn').addEventListener('click',()=>{
-  document.getElementById('enHtmlInput').click();
-});
-document.getElementById('enHtmlInput').addEventListener('change',e=>{
-  if(e.target.files.length) loadEnHTML(e.target.files[0]);
 });
 
 document.getElementById('baseUrl').addEventListener('change',()=>{if(matchResults)renderPreview();});
