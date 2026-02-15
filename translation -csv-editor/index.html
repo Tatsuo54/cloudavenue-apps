@@ -343,12 +343,11 @@ function parseCSV(text) {
 function stripTags(s) { return s.replace(/<[^>]+>/g,'').trim(); }
 
 function replaceTextInTagged(original, newText) {
-  original = original.replace(/<br\s*\/?>/gi, '');
   if (!/<[^>]+>/.test(original)) return newText;
   const parts = original.split(/(<[^>]+>)/);
   const structure = []; let hasText = false;
   for (const p of parts) {
-    if (p.match(/^<(hr|img|wbr)\s*\/?>$/i)) structure.push({type:'inline',value:p});
+    if (p.match(/^<(br|hr|img|wbr)\s*\/?>$/i)) structure.push({type:'inline',value:p});
     else if (p.match(/^<[^>]+>$/)) structure.push({type:'tag',value:p});
     else if (p.trim()) { structure.push({type:'text',value:p}); hasText = true; }
     else structure.push({type:'ws',value:p});
@@ -732,8 +731,7 @@ function saveEdit(idx) {
   const newText = ta.value.trim();
   const mr = matchResults.find(r=>r.csvIndex===idx); if (!mr) return;
   
-  const textWithBr = newText.replace(/\r?\n/g, '<br>');
-  const tagged = replaceTextInTagged(mr.csvRow.translated_text, textWithBr);
+  const tagged = replaceTextInTagged(mr.csvRow.translated_text, newText);
   
   edits[idx] = { newText, tagged };
   document.getElementById('edit-'+idx)?.classList.remove('visible');
@@ -781,8 +779,7 @@ function autoInsertEn() {
   if (!confirm(msg + '\n\n続行しますか？')) return;
   for (const mr of targets) {
     const enText = enTextMap[mr.csvIndex];
-    const textWithBr = enText.replace(/\r?\n/g, '<br>');
-    const tagged = replaceTextInTagged(mr.csvRow.translated_text, textWithBr);
+    const tagged = replaceTextInTagged(mr.csvRow.translated_text, enText);
     edits[mr.csvIndex] = { newText: enText, tagged };
   }
   updateStats(); renderPanel(); renderPreview();
