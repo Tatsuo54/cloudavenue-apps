@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tag Extractor</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #242836;
+    --border: #2e3345; --text: #e2e4eb; --text-dim: #8b90a0;
+    --accent: #4f8ff7; --green: #34d399; --green-dim: #064e3b;
+    --accent-en: #f7934f; --red: #f87171;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh; padding: 40px 20px;
+    display: flex; flex-direction: column; align-items: center; gap: 20px;
+  }
+  h1 { font-size: 16px; font-weight: 600; }
+
+  .columns {
+    width: 100%; max-width: 1280px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+  }
+  .col-header {
+    font-size: 11px; font-weight: 600; margin-bottom: 10px;
+    letter-spacing: 0.08em;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .col-ja .col-header span { color: var(--accent); }
+  .col-en .col-header span { color: var(--accent-en); }
+
+  textarea {
+    width: 100%; height: 120px;
+    font-family: inherit; font-size: 11px; padding: 10px;
+    border: 1px solid var(--border); border-radius: 6px;
+    background: var(--surface); color: var(--text);
+    resize: vertical; margin-bottom: 16px;
+  }
+  textarea:focus { outline: none; }
+  .col-ja textarea:focus { border-color: var(--accent); }
+  .col-en textarea:focus { border-color: var(--accent-en); }
+
+  .results { display: flex; flex-direction: column; gap: 10px; }
+  .row {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; padding: 10px 14px;
+    display: flex; align-items: baseline; gap: 10px;
+  }
+  .row .label { font-size: 10px; font-weight: 600; white-space: nowrap; min-width: 80px; }
+  .col-ja .row .label { color: var(--accent); }
+  .col-en .row .label { color: var(--accent-en); }
+  .row .value { font-size: 12px; flex: 1; word-break: break-all; line-height: 1.5; }
+  .row .value.empty { color: var(--text-dim); font-style: italic; }
+
+  button {
+    font-family: inherit; font-size: 10px; padding: 3px 8px;
+    border: 1px solid var(--border); border-radius: 4px;
+    background: var(--surface2); color: var(--text-dim);
+    cursor: pointer; white-space: nowrap;
+  }
+  .copy-btn:hover { border-color: var(--green); color: var(--green); }
+  .copy-btn.copied { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+  .clear-btn:hover, .clear-all-btn:hover { border-color: var(--red); color: var(--red); }
+
+  /* ── Bottom bar ── */
+  .bottom-bar {
+    width: 100%; max-width: 1280px;
+    display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  }
+  .save-area { display: flex; align-items: center; gap: 8px; flex: 1; }
+  .memo-input {
+    font-family: inherit; font-size: 11px; padding: 5px 10px;
+    border: 1px solid var(--border); border-radius: 4px;
+    background: var(--surface); color: var(--text);
+    flex: 1; min-width: 0;
+  }
+  .memo-input:focus { outline: none; border-color: var(--text-dim); }
+  .memo-input::placeholder { color: var(--text-dim); }
+  .memo-label { font-size: 10px; color: var(--text-dim); white-space: nowrap; }
+  .save-btn { padding: 5px 14px; border-color: var(--accent); color: var(--accent); flex-shrink: 0; }
+  .save-btn:hover { background: #1a2a4a; }
+  .right-btns { display: flex; gap: 8px; flex-shrink: 0; }
+  .clear-all-btn { padding: 5px 14px; }
+  .csv-btn { padding: 5px 14px; border-color: var(--green); color: var(--green); }
+  .csv-btn:hover { background: var(--green-dim); }
+
+  /* ── History ── */
+  .history-wrap { width: 100%; max-width: 1280px; }
+  .history-header {
+    font-size: 10px; color: var(--text-dim); margin-bottom: 10px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .history-header span { letter-spacing: 0.08em; }
+  .history-list { display: flex; flex-direction: column; gap: 8px; }
+  .history-item {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; padding: 10px 14px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px;
+    font-size: 11px;
+  }
+  .h-memo { grid-column: 1 / -1; color: var(--text-dim); font-size: 10px; word-break: break-all; }
+  .h-field { display: flex; gap: 8px; align-items: baseline; }
+  .h-label { font-size: 10px; font-weight: 600; white-space: nowrap; min-width: 70px; }
+  .h-ja .h-label { color: var(--accent); }
+  .h-en .h-label { color: var(--accent-en); }
+  .h-val { word-break: break-all; line-height: 1.5; flex: 1; }
+  .h-meta {
+    grid-column: 1 / -1; font-size: 10px; color: var(--text-dim);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .history-del:hover { border-color: var(--red); color: var(--red); }
+
+  @media (max-width: 720px) {
+    .columns, .history-item { grid-template-columns: 1fr; }
+    .bottom-bar { flex-direction: column; align-items: stretch; }
+    .save-area { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Tag Extractor</h1>
+
+<div class="columns">
+  <div class="col-ja">
+    <div class="col-header"><span>JA</span><button class="clear-btn" id="clearJa">Clear</button></div>
+    <textarea id="inputJa" placeholder="Paste HTML source here"></textarea>
+    <div class="results">
+      <div class="row">
+        <span class="label">title</span>
+        <span class="value" id="vTitleJa"></span>
+        <button class="copy-btn" data-id="vTitleJa">Copy</button>
+      </div>
+      <div class="row">
+        <span class="label">description</span>
+        <span class="value" id="vDescJa"></span>
+        <button class="copy-btn" data-id="vDescJa">Copy</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-en">
+    <div class="col-header"><span>EN</span><button class="clear-btn" id="clearEn">Clear</button></div>
+    <textarea id="inputEn" placeholder="Paste HTML source here"></textarea>
+    <div class="results">
+      <div class="row">
+        <span class="label">title</span>
+        <span class="value" id="vTitleEn"></span>
+        <button class="copy-btn" data-id="vTitleEn">Copy</button>
+      </div>
+      <div class="row">
+        <span class="label">description</span>
+        <span class="value" id="vDescEn"></span>
+        <button class="copy-btn" data-id="vDescEn">Copy</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="bottom-bar">
+  <div class="save-area">
+    <button class="save-btn" id="saveBtn">+ Save to History</button>
+    <span class="memo-label">memo</span>
+    <input type="text" class="memo-input" id="memoInput" placeholder="Page name, URL, notes... (optional)">
+  </div>
+  <div class="right-btns">
+    <button class="csv-btn" id="csvBtn">Export CSV</button>
+    <button class="clear-all-btn" id="clearAll">Clear All</button>
+  </div>
+</div>
+
+<div class="history-wrap" id="historyWrap" style="display:none">
+  <div class="history-header">
+    <span>HISTORY</span>
+    <button id="clearHistory">Clear History</button>
+  </div>
+  <div class="history-list" id="historyList"></div>
+</div>
+
+<script>
+function extract(html, titleId, descId) {
+  const t = html.match(/<title[^>]*>([^<]*)<\/title>/i);
+  const d = html.match(/<meta\s+[^>]*name=["']description["'][^>]*content="([^"]*)"/i)
+         || html.match(/<meta\s+[^>]*name=["']description["'][^>]*content='([^']*)'/i)
+         || html.match(/<meta\s+[^>]*content="([^"]*)"[^>]*name=["']description["']/i)
+         || html.match(/<meta\s+[^>]*content='([^']*)'[^>]*name=["']description["']/i);
+  setVal(titleId, t ? t[1].trim() : '');
+  setVal(descId,  d ? d[1].trim() : '');
+}
+
+function setVal(id, val) {
+  const el = document.getElementById(id);
+  if (val) { el.textContent = val; el.classList.remove('empty'); }
+  else      { el.textContent = 'n/a'; el.classList.add('empty'); }
+}
+
+function getVal(id) {
+  const el = document.getElementById(id);
+  return el.classList.contains('empty') ? '' : el.textContent;
+}
+
+document.getElementById('inputJa').addEventListener('input', e => extract(e.target.value, 'vTitleJa', 'vDescJa'));
+document.getElementById('inputEn').addEventListener('input', e => extract(e.target.value, 'vTitleEn', 'vDescEn'));
+
+function clearCol(inputId, titleId, descId) {
+  document.getElementById(inputId).value = '';
+  setVal(titleId, ''); setVal(descId, '');
+}
+
+document.getElementById('clearJa').addEventListener('click', () => clearCol('inputJa', 'vTitleJa', 'vDescJa'));
+document.getElementById('clearEn').addEventListener('click', () => clearCol('inputEn', 'vTitleEn', 'vDescEn'));
+document.getElementById('clearAll').addEventListener('click', () => {
+  clearCol('inputJa', 'vTitleJa', 'vDescJa');
+  clearCol('inputEn', 'vTitleEn', 'vDescEn');
+  document.getElementById('memoInput').value = '';
+});
+
+document.querySelectorAll('.copy-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const val = document.getElementById(btn.dataset.id).textContent;
+    if (val === 'n/a') return;
+    navigator.clipboard.writeText(val).then(() => {
+      btn.classList.add('copied'); btn.textContent = 'Copied!';
+      setTimeout(() => { btn.classList.remove('copied'); btn.textContent = 'Copy'; }, 1200);
+    });
+  });
+});
+
+// ── History ──
+let history = [];
+
+function renderHistory() {
+  const wrap = document.getElementById('historyWrap');
+  const list = document.getElementById('historyList');
+  if (history.length === 0) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  list.innerHTML = '';
+  [...history].reverse().forEach((item, ri) => {
+    const i = history.length - 1 - ri;
+    const na = '<span style="color:var(--text-dim);font-style:italic">n/a</span>';
+    const el = document.createElement('div');
+    el.className = 'history-item';
+    el.innerHTML = `
+      ${item.memo ? `<div class="h-memo">${item.memo}</div>` : ''}
+      <div class="h-field h-ja"><span class="h-label">title JA</span><span class="h-val">${item.titleJa || na}</span></div>
+      <div class="h-field h-en"><span class="h-label">title EN</span><span class="h-val">${item.titleEn || na}</span></div>
+      <div class="h-field h-ja"><span class="h-label">desc JA</span><span class="h-val">${item.descJa || na}</span></div>
+      <div class="h-field h-en"><span class="h-label">desc EN</span><span class="h-val">${item.descEn || na}</span></div>
+      <div class="h-meta"><span>${item.time}</span><button class="history-del" data-i="${i}">Delete</button></div>
+    `;
+    list.appendChild(el);
+  });
+  list.querySelectorAll('.history-del').forEach(btn => {
+    btn.addEventListener('click', () => { history.splice(Number(btn.dataset.i), 1); renderHistory(); });
+  });
+}
+
+document.getElementById('saveBtn').addEventListener('click', () => {
+  const entry = {
+    memo:    document.getElementById('memoInput').value.trim(),
+    titleJa: getVal('vTitleJa'),
+    titleEn: getVal('vTitleEn'),
+    descJa:  getVal('vDescJa'),
+    descEn:  getVal('vDescEn'),
+    time:    new Date().toLocaleString('ja-JP')
+  };
+  if (!entry.titleJa && !entry.titleEn && !entry.descJa && !entry.descEn) return;
+  history.push(entry);
+  document.getElementById('memoInput').value = '';
+  renderHistory();
+});
+
+document.getElementById('clearHistory').addEventListener('click', () => { history = []; renderHistory(); });
+
+// ── CSV Export ──
+document.getElementById('csvBtn').addEventListener('click', () => {
+  if (history.length === 0) return;
+  const headers = ['Memo','Title JA','Title EN','Description JA','Description EN','Saved At'];
+  const rows = history.map(h =>
+    [h.memo, h.titleJa, h.titleEn, h.descJa, h.descEn, h.time]
+    .map(v => `"${(v||'').replace(/"/g,'""')}"`).join(',')
+  );
+  const csv = '\uFEFF' + [headers.join(','), ...rows].join('\r\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `tag-extractor-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+});
+</script>
+</body>
+</html>
