@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +10,7 @@
     --bg: #0f1117; --surface: #1a1d27; --surface2: #242836;
     --border: #2e3345; --text: #e2e4eb; --text-dim: #8b90a0;
     --accent: #4f8ff7; --green: #34d399; --green-dim: #064e3b;
-    --accent-en: #f7934f; --red: #f87171;
+    --accent-pg2: #f7934f; --red: #f87171; --orange-dim: #3a2211;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
@@ -19,57 +19,100 @@
     min-height: 100vh; padding: 40px 20px;
     display: flex; flex-direction: column; align-items: center; gap: 20px;
   }
-  h1 { font-size: 16px; font-weight: 600; }
+  
+  /* ── Navigation & Header ── */
+  .top-nav {
+    width: 100%; max-width: 1280px; margin-bottom: -10px;
+  }
+  .back-link {
+    color: var(--text-dim); text-decoration: none; font-size: 12px;
+    display: inline-flex; align-items: center; gap: 6px; transition: color 0.2s;
+  }
+  .back-link:hover { color: var(--accent); }
+  h1 { font-size: 16px; font-weight: 600; width: 100%; max-width: 1280px; text-align: left;}
 
+  /* ── Settings Panel ── */
+  .settings-wrap {
+    width: 100%; max-width: 1280px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px; margin-bottom: 10px;
+  }
+  .settings-header {
+    display: flex; justify-content: space-between; align-items: center;
+    cursor: pointer; font-size: 12px; font-weight: 600; color: var(--text);
+  }
+  .settings-header span { display: flex; align-items: center; gap: 8px; }
+  .settings-content {
+    margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border);
+    display: none;
+  }
+  .settings-content.open { display: block; }
+  .preset-btns { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap;}
+  .preset-btns button {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); padding: 4px 10px; border-radius: 4px;
+    font-size: 10px; cursor: pointer; transition: all 0.2s;
+  }
+  .preset-btns button:hover { border-color: var(--accent); color: var(--accent); }
+  .checkbox-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px;
+  }
+  .checkbox-label {
+    font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text-dim);
+  }
+  .checkbox-label:hover { color: var(--text); }
+  .checkbox-label input { accent-color: var(--accent); cursor: pointer; }
+
+  /* ── Columns & IO ── */
   .columns {
     width: 100%; max-width: 1280px;
     display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
   }
   .col-header {
     font-size: 11px; font-weight: 600; margin-bottom: 10px;
-    letter-spacing: 0.08em;
-    display: flex; align-items: center; justify-content: space-between;
+    letter-spacing: 0.08em; display: flex; align-items: center; justify-content: space-between;
   }
-  .col-ja .col-header span { color: var(--accent); }
-  .col-en .col-header span { color: var(--accent-en); }
+  .col-pg1 .col-header span { color: var(--accent); }
+  .col-pg2 .col-header span { color: var(--accent-pg2); }
 
   textarea {
-    width: 100%; height: 120px;
+    width: 100%; height: 100px;
     font-family: inherit; font-size: 11px; padding: 10px;
     border: 1px solid var(--border); border-radius: 6px;
     background: var(--surface); color: var(--text);
     resize: vertical; margin-bottom: 16px;
   }
   textarea:focus { outline: none; }
-  .col-ja textarea:focus { border-color: var(--accent); }
-  .col-en textarea:focus { border-color: var(--accent-en); }
+  .col-pg1 textarea:focus { border-color: var(--accent); }
+  .col-pg2 textarea:focus { border-color: var(--accent-pg2); }
 
+  /* ── Results ── */
   .results { display: flex; flex-direction: column; gap: 10px; }
   .row {
     background: var(--surface); border: 1px solid var(--border);
     border-radius: 6px; padding: 10px 14px;
     display: flex; align-items: baseline; gap: 10px;
   }
-  .row .label { font-size: 10px; font-weight: 600; white-space: nowrap; min-width: 80px; }
-  .col-ja .row .label { color: var(--accent); }
-  .col-en .row .label { color: var(--accent-en); }
+  .row .label { font-size: 10px; font-weight: 600; white-space: nowrap; min-width: 90px; }
+  .col-pg1 .row .label { color: var(--accent); }
+  .col-pg2 .row .label { color: var(--accent-pg2); }
   .row .value { font-size: 12px; flex: 1; word-break: break-all; line-height: 1.5; }
   .row .value.empty { color: var(--text-dim); font-style: italic; }
 
-  button {
+  /* ── Buttons & Bottom Bar ── */
+  button.action-btn {
     font-family: inherit; font-size: 10px; padding: 3px 8px;
     border: 1px solid var(--border); border-radius: 4px;
     background: var(--surface2); color: var(--text-dim);
-    cursor: pointer; white-space: nowrap;
+    cursor: pointer; white-space: nowrap; transition: all 0.2s ease;
   }
   .copy-btn:hover { border-color: var(--green); color: var(--green); }
   .copy-btn.copied { border-color: var(--green); color: var(--green); background: var(--green-dim); }
   .clear-btn:hover, .clear-all-btn:hover { border-color: var(--red); color: var(--red); }
 
-  /* ── Bottom bar ── */
   .bottom-bar {
     width: 100%; max-width: 1280px;
-    display: flex; justify-content: space-between; align-items: center; gap: 16px;
+    display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-top: 10px;
   }
   .save-area { display: flex; align-items: center; gap: 8px; flex: 1; }
   .memo-input {
@@ -80,42 +123,39 @@
   }
   .memo-input:focus { outline: none; border-color: var(--text-dim); }
   .memo-input::placeholder { color: var(--text-dim); }
-  .memo-label { font-size: 10px; color: var(--text-dim); white-space: nowrap; }
   .save-btn { padding: 5px 14px; border-color: var(--accent); color: var(--accent); flex-shrink: 0; }
   .save-btn:hover { background: #1a2a4a; }
+  
   .right-btns { display: flex; gap: 8px; flex-shrink: 0; }
-  .clear-all-btn { padding: 5px 14px; }
+  .txt-btn { padding: 5px 14px; border-color: var(--accent-pg2); color: var(--accent-pg2); }
+  .txt-btn:hover { background: var(--orange-dim); }
   .csv-btn { padding: 5px 14px; border-color: var(--green); color: var(--green); }
   .csv-btn:hover { background: var(--green-dim); }
+  .clear-all-btn { padding: 5px 14px; }
 
   /* ── History ── */
-  .history-wrap { width: 100%; max-width: 1280px; }
+  .history-wrap { width: 100%; max-width: 1280px; margin-top: 20px;}
   .history-header {
     font-size: 10px; color: var(--text-dim); margin-bottom: 10px;
     display: flex; align-items: center; justify-content: space-between;
   }
-  .history-header span { letter-spacing: 0.08em; }
   .history-list { display: flex; flex-direction: column; gap: 8px; }
   .history-item {
     background: var(--surface); border: 1px solid var(--border);
-    border-radius: 6px; padding: 10px 14px;
-    display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px;
-    font-size: 11px;
+    border-radius: 6px; padding: 10px 14px; font-size: 11px;
   }
-  .h-memo { grid-column: 1 / -1; color: var(--text-dim); font-size: 10px; word-break: break-all; }
+  .h-memo { color: var(--text-dim); font-size: 10px; word-break: break-all; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed var(--border);}
+  .h-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; margin-bottom: 8px;}
   .h-field { display: flex; gap: 8px; align-items: baseline; }
-  .h-label { font-size: 10px; font-weight: 600; white-space: nowrap; min-width: 70px; }
-  .h-ja .h-label { color: var(--accent); }
-  .h-en .h-label { color: var(--accent-en); }
+  .h-label { font-size: 10px; font-weight: 600; white-space: nowrap; min-width: 90px; }
+  .h-pg1 .h-label { color: var(--accent); }
+  .h-pg2 .h-label { color: var(--accent-pg2); }
   .h-val { word-break: break-all; line-height: 1.5; flex: 1; }
-  .h-meta {
-    grid-column: 1 / -1; font-size: 10px; color: var(--text-dim);
-    display: flex; justify-content: space-between; align-items: center;
-  }
+  .h-meta { font-size: 10px; color: var(--text-dim); display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 8px;}
   .history-del:hover { border-color: var(--red); color: var(--red); }
 
   @media (max-width: 720px) {
-    .columns, .history-item { grid-template-columns: 1fr; }
+    .columns, .h-grid { grid-template-columns: 1fr; }
     .bottom-bar { flex-direction: column; align-items: stretch; }
     .save-area { flex-wrap: wrap; }
   }
@@ -123,112 +163,215 @@
 </head>
 <body>
 
+<div class="top-nav">
+  <a href="https://apps.cloudavenue.jp/" class="back-link">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+    Back
+  </a>
+</div>
+
 <h1>Tag Extractor</h1>
 
-<div class="columns">
-  <div class="col-ja">
-    <div class="col-header"><span>JA</span><button class="clear-btn" id="clearJa">Clear</button></div>
-    <textarea id="inputJa" placeholder="Paste HTML source here"></textarea>
-    <div class="results">
-      <div class="row">
-        <span class="label">title</span>
-        <span class="value" id="vTitleJa"></span>
-        <button class="copy-btn" data-id="vTitleJa">Copy</button>
-      </div>
-      <div class="row">
-        <span class="label">description</span>
-        <span class="value" id="vDescJa"></span>
-        <button class="copy-btn" data-id="vDescJa">Copy</button>
-      </div>
+<div class="settings-wrap">
+  <div class="settings-header" id="toggleSettings">
+    <span>⚙️ Settings (Presets & Tags)</span>
+    <span id="settingsIcon">▼</span>
+  </div>
+  <div class="settings-content" id="settingsContent">
+    <div class="preset-btns">
+      <button onclick="applyPreset(['title', 'description', 'keywords', 'h1'])">Basic SEO</button>
+      <button onclick="applyPreset(['og:title', 'og:description', 'og:image', 'og:url'])">OGP (SNS)</button>
+      <button onclick="applyPreset(['twitter:card', 'twitter:title', 'twitter:description'])">Twitter</button>
+      <button onclick="applyPreset('all')">Select All</button>
+      <button onclick="applyPreset('none')">Clear All</button>
     </div>
+    <div class="checkbox-grid" id="checkboxGrid">
+      </div>
+  </div>
+</div>
+
+<div class="columns">
+  <div class="col-pg1">
+    <div class="col-header"><span>Page 1</span><button class="action-btn clear-btn" id="clearPg1">Clear</button></div>
+    <textarea id="inputPg1" placeholder="Paste HTML source here"></textarea>
+    <div class="results" id="resultsPg1"></div>
   </div>
 
-  <div class="col-en">
-    <div class="col-header"><span>EN</span><button class="clear-btn" id="clearEn">Clear</button></div>
-    <textarea id="inputEn" placeholder="Paste HTML source here"></textarea>
-    <div class="results">
-      <div class="row">
-        <span class="label">title</span>
-        <span class="value" id="vTitleEn"></span>
-        <button class="copy-btn" data-id="vTitleEn">Copy</button>
-      </div>
-      <div class="row">
-        <span class="label">description</span>
-        <span class="value" id="vDescEn"></span>
-        <button class="copy-btn" data-id="vDescEn">Copy</button>
-      </div>
-    </div>
+  <div class="col-pg2">
+    <div class="col-header"><span>Page 2 (Optional)</span><button class="action-btn clear-btn" id="clearPg2">Clear</button></div>
+    <textarea id="inputPg2" placeholder="Paste HTML source here"></textarea>
+    <div class="results" id="resultsPg2"></div>
   </div>
 </div>
 
 <div class="bottom-bar">
   <div class="save-area">
-    <button class="save-btn" id="saveBtn">+ Save to History</button>
-    <span class="memo-label">memo</span>
-    <input type="text" class="memo-input" id="memoInput" placeholder="Page name, URL, notes... (optional)">
+    <button class="action-btn save-btn" id="saveBtn">+ Save to History</button>
+    <input type="text" class="memo-input" id="memoInput" placeholder="Memo: Page name, URL, notes... (optional)">
   </div>
   <div class="right-btns">
-    <button class="csv-btn" id="csvBtn">Export CSV</button>
-    <button class="clear-all-btn" id="clearAll">Clear All</button>
+    <button class="action-btn txt-btn" id="txtBtn">Export TXT</button>
+    <button class="action-btn csv-btn" id="csvBtn">Export CSV</button>
+    <button class="action-btn clear-all-btn" id="clearAll">Clear All</button>
   </div>
 </div>
 
 <div class="history-wrap" id="historyWrap" style="display:none">
   <div class="history-header">
     <span>HISTORY</span>
-    <button id="clearHistory">Clear History</button>
+    <button id="clearHistory" class="action-btn clear-btn">Clear History</button>
   </div>
   <div class="history-list" id="historyList"></div>
 </div>
 
 <script>
-function extract(html, titleId, descId) {
-  const t = html.match(/<title[^>]*>([^<]*)<\/title>/i);
-  const d = html.match(/<meta\s+[^>]*name=["']description["'][^>]*content="([^"]*)"/i)
-         || html.match(/<meta\s+[^>]*name=["']description["'][^>]*content='([^']*)'/i)
-         || html.match(/<meta\s+[^>]*content="([^"]*)"[^>]*name=["']description["']/i)
-         || html.match(/<meta\s+[^>]*content='([^']*)'[^>]*name=["']description["']/i);
-  setVal(titleId, t ? t[1].trim() : '');
-  setVal(descId,  d ? d[1].trim() : '');
+// ── Tag Configuration ──
+const TAGS = [
+  { id: 'title', label: 'title', selector: 'title', attr: 'text', default: true },
+  { id: 'description', label: 'description', selector: 'meta[name="description" i]', attr: 'content', default: true },
+  { id: 'keywords', label: 'keywords', selector: 'meta[name="keywords" i]', attr: 'content', default: false },
+  { id: 'h1', label: 'h1 (first)', selector: 'h1', attr: 'text', default: false },
+  { id: 'canonical', label: 'canonical', selector: 'link[rel="canonical" i]', attr: 'href', default: false },
+  { id: 'og:title', label: 'og:title', selector: 'meta[property="og:title" i]', attr: 'content', default: false },
+  { id: 'og:description', label: 'og:description', selector: 'meta[property="og:description" i]', attr: 'content', default: false },
+  { id: 'og:image', label: 'og:image', selector: 'meta[property="og:image" i]', attr: 'content', default: false },
+  { id: 'og:url', label: 'og:url', selector: 'meta[property="og:url" i]', attr: 'content', default: false },
+  { id: 'twitter:card', label: 'twitter:card', selector: 'meta[name="twitter:card" i]', attr: 'content', default: false },
+  { id: 'twitter:title', label: 'twitter:title', selector: 'meta[name="twitter:title" i]', attr: 'content', default: false },
+  { id: 'twitter:description', label: 'twitter:description', selector: 'meta[name="twitter:description" i]', attr: 'content', default: false }
+];
+
+let activeTags = [];
+
+// ── Settings & UI Initialization ──
+function initSettings() {
+  const grid = document.getElementById('checkboxGrid');
+  const savedSettings = JSON.parse(localStorage.getItem('tagExtractorConfig'));
+  
+  TAGS.forEach(tag => {
+    const isChecked = savedSettings ? savedSettings.includes(tag.id) : tag.default;
+    const label = document.createElement('label');
+    label.className = 'checkbox-label';
+    label.innerHTML = `<input type="checkbox" value="${tag.id}" ${isChecked ? 'checked' : ''}> ${tag.label}`;
+    
+    label.querySelector('input').addEventListener('change', () => {
+      updateActiveTags();
+      reExtract();
+    });
+    grid.appendChild(label);
+  });
+  updateActiveTags();
+}
+
+function updateActiveTags() {
+  const checkboxes = document.querySelectorAll('#checkboxGrid input:checked');
+  activeTags = Array.from(checkboxes).map(cb => cb.value);
+  localStorage.setItem('tagExtractorConfig', JSON.stringify(activeTags));
+  buildResultsUI();
+}
+
+function applyPreset(preset) {
+  const checkboxes = document.querySelectorAll('#checkboxGrid input');
+  checkboxes.forEach(cb => {
+    if (preset === 'all') cb.checked = true;
+    else if (preset === 'none') cb.checked = false;
+    else cb.checked = preset.includes(cb.value);
+  });
+  updateActiveTags();
+  reExtract();
+}
+
+function buildResultsUI() {
+  const build = (containerId, colId) => {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+    activeTags.forEach(tagId => {
+      const tag = TAGS.find(t => t.id === tagId);
+      const elId = `v_${colId}_${tag.id}`;
+      container.innerHTML += `
+        <div class="row">
+          <span class="label">${tag.label}</span>
+          <span class="value empty" id="${elId}">n/a</span>
+          <button class="action-btn copy-btn" onclick="copyValue('${elId}', this)">Copy</button>
+        </div>
+      `;
+    });
+  };
+  build('resultsPg1', 'pg1');
+  build('resultsPg2', 'pg2');
+}
+
+// Settings Toggle
+document.getElementById('toggleSettings').addEventListener('click', () => {
+  const content = document.getElementById('settingsContent');
+  const icon = document.getElementById('settingsIcon');
+  content.classList.toggle('open');
+  icon.textContent = content.classList.contains('open') ? '▲' : '▼';
+});
+
+// ── Core Extraction Logic ──
+function extract(html, colId) {
+  if (!html.trim()) {
+    activeTags.forEach(tagId => setVal(`v_${colId}_${tagId}`, ''));
+    return;
+  }
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+
+  activeTags.forEach(tagId => {
+    const tagDef = TAGS.find(t => t.id === tagId);
+    const node = doc.querySelector(tagDef.selector);
+    let val = '';
+    if (node) {
+      val = tagDef.attr === 'text' ? node.textContent.trim() : (node.getAttribute(tagDef.attr) || '').trim();
+    }
+    setVal(`v_${colId}_${tagId}`, val);
+  });
+}
+
+function reExtract() {
+  extract(document.getElementById('inputPg1').value, 'pg1');
+  extract(document.getElementById('inputPg2').value, 'pg2');
 }
 
 function setVal(id, val) {
   const el = document.getElementById(id);
+  if (!el) return;
   if (val) { el.textContent = val; el.classList.remove('empty'); }
-  else      { el.textContent = 'n/a'; el.classList.add('empty'); }
+  else { el.textContent = 'n/a'; el.classList.add('empty'); }
 }
 
 function getVal(id) {
   const el = document.getElementById(id);
-  return el.classList.contains('empty') ? '' : el.textContent;
+  return (el && !el.classList.contains('empty')) ? el.textContent : '';
 }
 
-document.getElementById('inputJa').addEventListener('input', e => extract(e.target.value, 'vTitleJa', 'vDescJa'));
-document.getElementById('inputEn').addEventListener('input', e => extract(e.target.value, 'vTitleEn', 'vDescEn'));
+// Event Listeners for inputs
+document.getElementById('inputPg1').addEventListener('input', e => extract(e.target.value, 'pg1'));
+document.getElementById('inputPg2').addEventListener('input', e => extract(e.target.value, 'pg2'));
 
-function clearCol(inputId, titleId, descId) {
+function clearCol(colId) {
+  const inputId = colId === 'pg1' ? 'inputPg1' : 'inputPg2';
   document.getElementById(inputId).value = '';
-  setVal(titleId, ''); setVal(descId, '');
+  activeTags.forEach(tagId => setVal(`v_${colId}_${tagId}`, ''));
 }
 
-document.getElementById('clearJa').addEventListener('click', () => clearCol('inputJa', 'vTitleJa', 'vDescJa'));
-document.getElementById('clearEn').addEventListener('click', () => clearCol('inputEn', 'vTitleEn', 'vDescEn'));
+document.getElementById('clearPg1').addEventListener('click', () => clearCol('pg1'));
+document.getElementById('clearPg2').addEventListener('click', () => clearCol('pg2'));
 document.getElementById('clearAll').addEventListener('click', () => {
-  clearCol('inputJa', 'vTitleJa', 'vDescJa');
-  clearCol('inputEn', 'vTitleEn', 'vDescEn');
+  clearCol('pg1'); clearCol('pg2');
   document.getElementById('memoInput').value = '';
 });
 
-document.querySelectorAll('.copy-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const val = document.getElementById(btn.dataset.id).textContent;
-    if (val === 'n/a') return;
-    navigator.clipboard.writeText(val).then(() => {
-      btn.classList.add('copied'); btn.textContent = 'Copied!';
-      setTimeout(() => { btn.classList.remove('copied'); btn.textContent = 'Copy'; }, 1200);
-    });
+// Copy Function
+window.copyValue = function(id, btn) {
+  const val = document.getElementById(id).textContent;
+  if (val === 'n/a') return;
+  navigator.clipboard.writeText(val).then(() => {
+    btn.classList.add('copied'); btn.textContent = 'Copied!';
+    setTimeout(() => { btn.classList.remove('copied'); btn.textContent = 'Copy'; }, 1200);
   });
-});
+};
 
 // ── History ──
 let history = [];
@@ -239,51 +382,118 @@ function renderHistory() {
   if (history.length === 0) { wrap.style.display = 'none'; return; }
   wrap.style.display = 'block';
   list.innerHTML = '';
+  
   [...history].reverse().forEach((item, ri) => {
     const i = history.length - 1 - ri;
     const na = '<span style="color:var(--text-dim);font-style:italic">n/a</span>';
+    
+    let gridHtml = '';
+    Object.keys(item.data).forEach(tagId => {
+      const tagDef = TAGS.find(t => t.id === tagId);
+      if(!tagDef) return;
+      gridHtml += `
+        <div class="h-field h-pg1"><span class="h-label">${tagDef.label} (Pg1)</span><span class="h-val">${item.data[tagId].pg1 || na}</span></div>
+        <div class="h-field h-pg2"><span class="h-label">${tagDef.label} (Pg2)</span><span class="h-val">${item.data[tagId].pg2 || na}</span></div>
+      `;
+    });
+
     const el = document.createElement('div');
     el.className = 'history-item';
     el.innerHTML = `
       ${item.memo ? `<div class="h-memo">${item.memo}</div>` : ''}
-      <div class="h-field h-ja"><span class="h-label">title JA</span><span class="h-val">${item.titleJa || na}</span></div>
-      <div class="h-field h-en"><span class="h-label">title EN</span><span class="h-val">${item.titleEn || na}</span></div>
-      <div class="h-field h-ja"><span class="h-label">desc JA</span><span class="h-val">${item.descJa || na}</span></div>
-      <div class="h-field h-en"><span class="h-label">desc EN</span><span class="h-val">${item.descEn || na}</span></div>
-      <div class="h-meta"><span>${item.time}</span><button class="history-del" data-i="${i}">Delete</button></div>
+      <div class="h-grid">${gridHtml}</div>
+      <div class="h-meta"><span>${item.time}</span><button class="action-btn history-del" data-i="${i}">Delete</button></div>
     `;
     list.appendChild(el);
   });
+  
   list.querySelectorAll('.history-del').forEach(btn => {
     btn.addEventListener('click', () => { history.splice(Number(btn.dataset.i), 1); renderHistory(); });
   });
 }
 
 document.getElementById('saveBtn').addEventListener('click', () => {
-  const entry = {
-    memo:    document.getElementById('memoInput').value.trim(),
-    titleJa: getVal('vTitleJa'),
-    titleEn: getVal('vTitleEn'),
-    descJa:  getVal('vDescJa'),
-    descEn:  getVal('vDescEn'),
-    time:    new Date().toLocaleString('ja-JP')
-  };
-  if (!entry.titleJa && !entry.titleEn && !entry.descJa && !entry.descEn) return;
-  history.push(entry);
+  const data = {};
+  let hasData = false;
+
+  activeTags.forEach(tagId => {
+    const valPg1 = getVal(`v_pg1_${tagId}`);
+    const valPg2 = getVal(`v_pg2_${tagId}`);
+    if (valPg1 || valPg2) hasData = true;
+    data[tagId] = { pg1: valPg1, pg2: valPg2 };
+  });
+
+  if (!hasData) return;
+  
+  const timeStr = new Date().toLocaleString('en-US', { hour12: false });
+  
+  history.push({
+    memo: document.getElementById('memoInput').value.trim(),
+    data: data,
+    time: timeStr
+  });
+  
   document.getElementById('memoInput').value = '';
   renderHistory();
 });
 
 document.getElementById('clearHistory').addEventListener('click', () => { history = []; renderHistory(); });
 
+// ── TXT Export ──
+document.getElementById('txtBtn').addEventListener('click', () => {
+  if (history.length === 0) return;
+  
+  let txtContent = "=== Tag Extractor Export ===\r\n\r\n";
+  
+  // 履歴を古い順（またはそのままの順）で書き出し
+  history.forEach((h, index) => {
+    txtContent += `[Entry ${index + 1}]\r\n`;
+    if (h.memo) txtContent += `Memo: ${h.memo}\r\n`;
+    txtContent += `Saved At: ${h.time}\r\n\r\n`;
+    
+    Object.keys(h.data).forEach(tagId => {
+      const tagDef = TAGS.find(t => t.id === tagId);
+      if (!tagDef) return;
+      
+      if (h.data[tagId].pg1) {
+        txtContent += `--- ${tagDef.label} (Page 1) ---\r\n${h.data[tagId].pg1}\r\n\r\n`;
+      }
+      if (h.data[tagId].pg2) {
+        txtContent += `--- ${tagDef.label} (Page 2) ---\r\n${h.data[tagId].pg2}\r\n\r\n`;
+      }
+    });
+    txtContent += "========================================\r\n\r\n";
+  });
+
+  const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `tag-extractor-${new Date().toISOString().slice(0,10)}.txt`;
+  a.click();
+});
+
 // ── CSV Export ──
 document.getElementById('csvBtn').addEventListener('click', () => {
   if (history.length === 0) return;
-  const headers = ['Memo','Title JA','Title EN','Description JA','Description EN','Saved At'];
-  const rows = history.map(h =>
-    [h.memo, h.titleJa, h.titleEn, h.descJa, h.descEn, h.time]
-    .map(v => `"${(v||'').replace(/"/g,'""')}"`).join(',')
-  );
+  
+  const usedTags = new Set();
+  history.forEach(h => Object.keys(h.data).forEach(tag => usedTags.add(tag)));
+  const tagList = Array.from(usedTags);
+  
+  let headers = ['Memo', 'Saved At'];
+  tagList.forEach(tagId => {
+    const label = TAGS.find(t => t.id === tagId)?.label || tagId;
+    headers.push(`${label} (Page 1)`, `${label} (Page 2)`);
+  });
+
+  const rows = history.map(h => {
+    let row = [h.memo, h.time];
+    tagList.forEach(tagId => {
+      row.push(h.data[tagId]?.pg1 || '', h.data[tagId]?.pg2 || '');
+    });
+    return row.map(v => `"${(v||'').replace(/"/g,'""')}"`).join(',');
+  });
+
   const csv = '\uFEFF' + [headers.join(','), ...rows].join('\r\n');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const a = document.createElement('a');
@@ -291,6 +501,9 @@ document.getElementById('csvBtn').addEventListener('click', () => {
   a.download = `tag-extractor-${new Date().toISOString().slice(0,10)}.csv`;
   a.click();
 });
+
+// Boot
+initSettings();
 </script>
 </body>
 </html>
