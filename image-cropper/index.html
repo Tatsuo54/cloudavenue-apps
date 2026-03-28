@@ -1,351 +1,424 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" data-theme="auto">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>画像一括トリミングツール</title>
+  <title>Batch Image Cropper</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <style>
-    * {
-      box-sizing: border-box;
+  <style id="cloudavenue-shared-css">
+    /* --- Base Styles & Theme --- */
+    :root {
+      /* Dull / Smoky Color Palette (Light Mode Default) */
+      --bg: #f3f5f3;
+      --surface: #ffffff;
+      --surface2: #dae0da;
+      --border: #cad1ca;
+      --text: #3c453c;
+      --text-dim: #758075;
+      --accent: #78909c;
+      --accent-dim: #b0bec5;
+      --primary: #81a18b;
+      --primary-hover: #6d8a77;
+      --sans-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      --mono-font: 'JetBrains Mono', 'SF Mono', monospace;
+      
+      /* Context Specific mappings */
+      --info-bg: #d1e0e3; /* Dull cyan for info */
+      --info-text: #2b5a61;
+      --warn-bg: #eedbd0; /* Dull orange for warning */
+      --warn-text: #7a4a31;
+      --success-bg: #cfdfd5; /* Dull green for success */
+      --success-text: #3e5e49;
     }
+
+    [data-theme="dark"] {
+      --bg: #1e2220;
+      --surface: #262b28;
+      --surface2: #303632;
+      --border: #424a44;
+      --text: #e6e9e6;
+      --text-dim: #a0afa4;
+      --accent: #90a4ae;
+      --accent-dim: #607d8b;
+      --primary: #6d8a77;
+      --primary-hover: #81a18b;
+
+      --info-bg: #2b5a61;
+      --info-text: #d1e0e3;
+      --warn-bg: #4a2e1d;
+      --warn-text: #eedbd0;
+      --success-bg: #2b3d31;
+      --success-text: #cfdfd5;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      max-width: 1400px;
+      font-family: var(--sans-font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* --- Language Toggle CSS --- */
+    html[lang="ja"] [lang="en"] { display: none !important; }
+    html[lang="en"] [lang="ja"] { display: none !important; }
+
+    /* --- Layout & Utilities --- */
+    .container {
+      width: 100%;
+      max-width: 1400px; /* wider for this tool */
       margin: 0 auto;
-      padding: 20px;
-      background: #f5f5f5;
+      padding: 0 20px 40px;
+      flex: 1;
     }
-    .back-link {
-      margin: 0 0 10px 0;
-    }
-    .back-link a {
-      color: #666;
-      text-decoration: none;
-      font-size: 14px;
-    }
-    .back-link a:hover {
-      color: #333;
-    }
-    h1 {
-      font-size: 24px;
+    a { color: var(--accent); text-decoration: none; transition: color 0.2s; }
+    a:hover { color: var(--text); }
+    h1 { font-size: 24px; margin-bottom: 20px; color: var(--text); }
+    .hidden { display: none !important; }
+
+    /* --- Top Nav (Header) --- */
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
       margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
     }
+    .nav-right { display: flex; align-items: center; gap: 10px; }
+    .nav-left { display: flex; align-items: center; justify-content: flex-start; gap: 15px; margin-right: auto; }
+    .back-link {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .back-link:hover { color: var(--text); }
+
+    /* --- Toggles (Select) --- */
+    .ctrl-select {
+      font-family: var(--sans-font);
+      font-size: 12px;
+      padding: 4px 8px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      outline: none;
+    }
+    .ctrl-select:focus { border-color: var(--accent); }
+
+    /* --- Form Controls & Buttons --- */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 32px;
+      font-size: 14px;
+      font-weight: 600;
+      border: 1px solid transparent;
+      border-radius: 100px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: var(--sans-font);
+    }
+    .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .btn-primary:hover { background: var(--primary-hover); transform: translateY(-2px); }
+    .btn-primary:disabled { background: var(--border); border-color: var(--border); cursor: not-allowed; transform: none; }
+    
+    .btn-secondary { background: var(--surface); color: var(--text); border: 2px solid var(--border); }
+    .btn-secondary:hover { background: var(--surface2); border-color: var(--text-dim); }
+
+    .btn-container { display: flex; gap: 15px; flex-wrap: wrap; }
+
+    /* --- Footer --- */
+    .main-footer {
+      text-align: center;
+      padding: 30px 20px;
+      margin-top: auto;
+      font-size: 14px;
+      color: var(--text-dim);
+    }
+
+    /* --- App Specific Styles --- */
     .drop-zone {
-      border: 3px dashed #ccc;
+      border: 3px dashed var(--border);
       border-radius: 15px;
       padding: 40px;
       text-align: center;
-      background: #fff;
+      background: var(--surface);
       cursor: pointer;
       transition: all 0.2s;
       margin-bottom: 20px;
     }
     .drop-zone:hover, .drop-zone.dragover {
-      border-color: #666;
-      background: #f9f9f9;
+      border-color: var(--accent);
+      background: var(--bg);
     }
-    .drop-zone p {
-      margin: 0;
-      color: #666;
-    }
+    .drop-zone p { margin: 0; color: var(--text-dim); }
+    
     .controls {
-      background: #fff;
+      background: var(--surface);
       border-radius: 15px;
       padding: 20px;
       margin-bottom: 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+      border: 1px solid var(--border);
     }
-    .control-section {
-      margin-bottom: 20px;
-    }
-    .control-section:last-child {
-      margin-bottom: 0;
-    }
+    .control-section { margin-bottom: 20px; }
+    .control-section:last-child { margin-bottom: 0; }
     .section-title {
       font-weight: bold;
-      color: #666;
+      color: var(--text-dim);
       font-size: 12px;
       text-transform: uppercase;
       letter-spacing: 1px;
       margin-bottom: 10px;
       padding-bottom: 5px;
-      border-bottom: 1px solid #eee;
+      border-bottom: 1px solid var(--border);
     }
-    .control-row {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      margin-bottom: 10px;
-    }
-    .control-row:last-child {
-      margin-bottom: 0;
-    }
-    .control-row label {
-      width: 100px;
-      font-weight: bold;
-      color: #333;
-    }
+    .control-row { display: flex; align-items: center; gap: 15px; margin-bottom: 10px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .control-row label { width: 100px; font-weight: bold; color: var(--text); font-size: 13px;}
+    
     .control-row input[type="range"] {
-      flex: 1;
-      height: 8px;
-      -webkit-appearance: none;
-      background: #e0e0e0;
-      border-radius: 4px;
-      outline: none;
+      flex: 1; height: 8px; -webkit-appearance: none; background: var(--border); border-radius: 4px; outline: none;
     }
     .control-row input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 20px;
-      height: 20px;
-      background: #333;
-      border-radius: 50%;
-      cursor: pointer;
+      -webkit-appearance: none; width: 20px; height: 20px; background: var(--accent); border-radius: 50%; cursor: pointer;
     }
     .control-row input[type="number"] {
-      width: 80px;
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      font-size: 14px;
+      width: 80px; padding: 8px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: var(--surface); color: var(--text);
     }
+    
     .info {
-      background: #e8f4f8;
-      padding: 10px 15px;
-      border-radius: 8px;
-      font-size: 14px;
-      color: #333;
+      background: var(--info-bg); padding: 10px 15px; border-radius: 8px; font-size: 14px; color: var(--info-text);
     }
     .file-count {
-      background: #fff3cd;
-      padding: 10px 15px;
-      border-radius: 8px;
-      font-size: 14px;
-      color: #856404;
-      margin-bottom: 15px;
+      background: var(--warn-bg); padding: 10px 15px; border-radius: 8px; font-size: 14px; color: var(--warn-text); margin-bottom: 15px; font-weight: bold;
     }
-    .unit-toggle {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 15px;
-    }
+    
+    .unit-toggle { display: flex; gap: 10px; margin-bottom: 15px; }
     .unit-btn {
-      padding: 8px 20px;
-      border: 2px solid #ddd;
-      background: #fff;
-      border-radius: 100px;
-      font-size: 13px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: all 0.2s;
+      padding: 8px 20px; border: 2px solid var(--border); background: var(--surface); border-radius: 100px; font-size: 13px; font-weight: bold; cursor: pointer; transition: all 0.2s; color: var(--text-dim);
     }
-    .unit-btn:hover {
-      border-color: #bbb;
-    }
-    .unit-btn.active {
-      background: #333;
-      color: #fff;
-      border-color: #333;
-    }
+    .unit-btn:hover { border-color: var(--accent-dim); color: var(--text); }
+    .unit-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    
     .preview-container {
-      background: #fff;
-      border-radius: 15px;
-      padding: 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      margin-bottom: 20px;
+      background: var(--surface); border-radius: 15px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); margin-bottom: 20px; border: 1px solid var(--border);
     }
-    .preview-label {
-      font-weight: bold;
-      margin-bottom: 15px;
-      color: #333;
-    }
-    .preview-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 15px;
-    }
-    .preview-grid.single-image {
-      grid-template-columns: 1fr;
-      max-width: 800px;
-    }
-    .preview-grid.single-image .preview-wrapper img {
-      max-height: none;
-    }
-    .preview-item {
-      background: #f9f9f9;
-      border-radius: 10px;
-      padding: 10px;
-      text-align: center;
-    }
-    .preview-item-name {
-      font-size: 12px;
-      color: #666;
-      margin-bottom: 4px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .preview-item-size {
-      font-size: 11px;
-      color: #999;
-      margin-bottom: 8px;
-    }
-    .preview-wrapper {
-      position: relative;
-      display: inline-block;
-      max-width: 100%;
-    }
-    .preview-wrapper img {
-      max-width: 100%;
-      max-height: 200px;
-      display: block;
-      margin: 0 auto;
-    }
-    .crop-overlay {
-      position: absolute;
-      background: rgba(0, 0, 0, 0.5);
-      pointer-events: none;
-    }
-    .crop-overlay-top {
-      top: 0;
-      left: 0;
-      right: 0;
-    }
-    .crop-overlay-bottom {
-      bottom: 0;
-      left: 0;
-      right: 0;
-    }
-    .crop-overlay-left {
-      left: 0;
-      top: 0;
-      bottom: 0;
-    }
-    .crop-overlay-right {
-      right: 0;
-      top: 0;
-      bottom: 0;
-    }
-    .btn-container {
-      display: flex;
-      gap: 15px;
-      flex-wrap: wrap;
-    }
-    .btn {
-      display: inline-block;
-      padding: 12px 32px;
-      background: #333;
-      color: #fff;
-      border: none;
-      border-radius: 100px;
-      font-size: 14px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .btn:hover {
-      background: #555;
-      transform: translateY(-2px);
-    }
-    .btn:disabled {
-      background: #ccc;
-      cursor: not-allowed;
-      transform: none;
-    }
-    .btn-secondary {
-      background: #fff;
-      color: #333;
-      border: 2px solid #ddd;
-    }
-    .btn-secondary:hover {
-      background: #f9f9f9;
-      border-color: #bbb;
-    }
-    .hidden {
-      display: none;
-    }
-    canvas {
-      display: none;
-    }
-    .progress {
-      margin-top: 15px;
-      padding: 10px 15px;
-      background: #d4edda;
-      border-radius: 8px;
-      color: #155724;
-      font-size: 14px;
-    }
-    footer {
-      margin-top: 60px;
-      text-align: center;
-    }
-    footer a {
-      color: #666;
-      font-size: 15px;
-      text-decoration: none;
-    }
-    footer a:hover {
-      color: #999;
-    }
+    .preview-label { font-weight: bold; margin-bottom: 15px; color: var(--text); font-size: 14px;}
+    .preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; }
+    .preview-grid.single-image { grid-template-columns: 1fr; max-width: 800px; margin: 0 auto; }
+    .preview-grid.single-image .preview-wrapper img { max-height: none; }
+    
+    .preview-item { background: var(--bg); border-radius: 10px; padding: 10px; text-align: center; border: 1px solid var(--border);}
+    .preview-item-name { font-size: 12px; color: var(--text); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold;}
+    .preview-item-size { font-size: 11px; color: var(--text-dim); margin-bottom: 8px; font-family: var(--mono-font);}
+    
+    .preview-wrapper { position: relative; display: inline-block; max-width: 100%; }
+    .preview-wrapper img { max-width: 100%; max-height: 200px; display: block; margin: 0 auto; border-radius: 4px;}
+    .crop-overlay { position: absolute; background: rgba(0, 0, 0, 0.6); pointer-events: none; }
+    .crop-overlay-top { top: 0; left: 0; right: 0; }
+    .crop-overlay-bottom { bottom: 0; left: 0; right: 0; }
+    .crop-overlay-left { left: 0; top: 0; bottom: 0; }
+    .crop-overlay-right { right: 0; top: 0; bottom: 0; }
+    
+    canvas { display: none; }
+    .progress { margin-top: 15px; padding: 10px 15px; background: var(--success-bg); border-radius: 8px; color: var(--success-text); font-size: 14px; font-weight: bold;}
   </style>
 </head>
 <body>
-  <p class="back-link"><a href="../">← トップに戻る</a></p>
-  <h1>画像一括トリミングツール</h1>
-  
-  <div class="drop-zone" id="dropZone">
-    <p>複数の画像をドラッグ&ドロップ<br>またはクリックして選択</p>
-    <input type="file" id="fileInput" accept="image/*" multiple style="display: none;">
-  </div>
-  
-  <div class="controls hidden" id="controls">
-    <div class="file-count" id="fileCount">読み込んだファイル: 0件</div>
-    <div class="unit-toggle">
-      <button class="unit-btn active" id="unitPx">px</button>
-      <button class="unit-btn" id="unitPercent">%</button>
+
+  <!-- Shared Navigation Template -->
+  <nav class="top-nav">
+    <div class="nav-left">
+      <a href="/" class="back-link">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        <span lang="ja">トップに戻る</span><span lang="en">Back to Top</span>
+      </a>
     </div>
-    <div class="control-section">
-      <div class="section-title">上下トリミング</div>
-      <div class="control-row">
-        <label>上から</label>
-        <input type="range" id="topCut" min="0" max="300" value="0">
-        <input type="number" id="topCutNum" min="0" max="1000" value="0" step="1"> <span class="unit-label">px</span>
+    <div class="nav-right">
+      <select id="theme-select" class="ctrl-select">
+        <option value="auto" lang="ja">テーマ: 自動</option>
+        <option value="auto" lang="en">Theme: Auto</option>
+        <option value="light" lang="ja">ライト</option>
+        <option value="light" lang="en">Light</option>
+        <option value="dark" lang="ja">ダーク</option>
+        <option value="dark" lang="en">Dark</option>
+      </select>
+      <select id="lang-select" class="ctrl-select">
+        <option value="ja">日本語</option>
+        <option value="en">English</option>
+      </select>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h1>
+      <span lang="ja">画像一括トリミングツール</span>
+      <span lang="en">Batch Image Cropper</span>
+    </h1>
+    
+    <div class="drop-zone" id="dropZone">
+      <p>
+        <span lang="ja">複数の画像をドラッグ&ドロップ<br>またはクリックして選択</span>
+        <span lang="en">Drag & drop multiple images<br>or click to select</span>
+      </p>
+      <input type="file" id="fileInput" accept="image/*" multiple style="display: none;">
+    </div>
+    
+    <div class="controls hidden" id="controls">
+      <div class="file-count" id="fileCount">
+        <span lang="ja">読み込んだファイル: 0件</span>
+        <span lang="en">Loaded files: 0</span>
       </div>
-      <div class="control-row">
-        <label>下から</label>
-        <input type="range" id="bottomCut" min="0" max="300" value="0">
-        <input type="number" id="bottomCutNum" min="0" max="1000" value="0" step="1"> <span class="unit-label">px</span>
+      <div class="unit-toggle">
+        <button class="unit-btn active" id="unitPx">px</button>
+        <button class="unit-btn" id="unitPercent">%</button>
+      </div>
+      
+      <div class="control-section">
+        <div class="section-title">
+          <span lang="ja">上下トリミング</span>
+          <span lang="en">Vertical Cropping</span>
+        </div>
+        <div class="control-row">
+          <label>
+            <span lang="ja">上から</span>
+            <span lang="en">From Top</span>
+          </label>
+          <input type="range" id="topCut" min="0" max="300" value="0">
+          <input type="number" id="topCutNum" min="0" max="1000" value="0" step="1"> <span class="unit-label">px</span>
+        </div>
+        <div class="control-row">
+          <label>
+            <span lang="ja">下から</span>
+            <span lang="en">From Bottom</span>
+          </label>
+          <input type="range" id="bottomCut" min="0" max="300" value="0">
+          <input type="number" id="bottomCutNum" min="0" max="1000" value="0" step="1"> <span class="unit-label">px</span>
+        </div>
+      </div>
+      
+      <div class="control-section">
+        <div class="section-title">
+          <span lang="ja">左右トリミング</span>
+          <span lang="en">Horizontal Cropping</span>
+        </div>
+        <div class="control-row">
+          <label>
+            <span lang="ja">左から</span>
+            <span lang="en">From Left</span>
+          </label>
+          <input type="range" id="leftCut" min="0" max="300" value="0">
+          <input type="number" id="leftCutNum" min="0" max="1000" value="0" step="1"> <span class="unit-label">px</span>
+        </div>
+        <div class="control-row">
+          <label>
+            <span lang="ja">右から</span>
+            <span lang="en">From Right</span>
+          </label>
+          <input type="range" id="rightCut" min="0" max="300" value="0">
+          <input type="number" id="rightCutNum" min="0" max="1000" value="0" step="1"> <span class="unit-label">px</span>
+        </div>
       </div>
     </div>
-    <div class="control-section">
-      <div class="section-title">左右トリミング</div>
-      <div class="control-row">
-        <label>左から</label>
-        <input type="range" id="leftCut" min="0" max="300" value="0">
-        <input type="number" id="leftCutNum" min="0" max="1000" value="0" step="1"> <span class="unit-label">px</span>
+    
+    <div class="preview-container hidden" id="previewContainer">
+      <div class="preview-label">
+        <span lang="ja">プレビュー（暗い部分がカットされます）</span>
+        <span lang="en">Preview (Darkened areas will be cropped)</span>
       </div>
-      <div class="control-row">
-        <label>右から</label>
-        <input type="range" id="rightCut" min="0" max="300" value="0">
-        <input type="number" id="rightCutNum" min="0" max="1000" value="0" step="1"> <span class="unit-label">px</span>
-      </div>
+      <div class="preview-grid" id="previewGrid"></div>
     </div>
+    
+    <div class="btn-container hidden" id="btnContainer">
+      <button class="btn btn-primary" id="downloadBtn">
+        <span lang="ja">一括ダウンロード（ZIP）</span>
+        <span lang="en">Download All (ZIP)</span>
+      </button>
+      <button class="btn btn-secondary" id="clearBtn">
+        <span lang="ja">クリア</span>
+        <span lang="en">Clear</span>
+      </button>
+    </div>
+    
+    <div class="progress hidden" id="progress"></div>
+    
+    <canvas id="canvas"></canvas>
   </div>
-  
-  <div class="preview-container hidden" id="previewContainer">
-    <div class="preview-label">プレビュー（暗い部分がカットされます）</div>
-    <div class="preview-grid" id="previewGrid"></div>
-  </div>
-  
-  <div class="btn-container hidden" id="btnContainer">
-    <button class="btn" id="downloadBtn">一括ダウンロード（ZIP）</button>
-    <button class="btn btn-secondary" id="clearBtn">クリア</button>
-  </div>
-  
-  <div class="progress hidden" id="progress"></div>
-  
-  <canvas id="canvas"></canvas>
-  
+
+  <footer class="main-footer">
+    <a href="https://cloudavenue.jp" target="_blank">cloudavenue.jp</a>
+  </footer>
+
+  <!-- Shared Script Template -->
+  <script id="cloudavenue-shared-script">
+    (function() {
+      const getStorage = (key, defaultVal) => localStorage.getItem(key) || defaultVal;
+      const setStorage = (key, val) => localStorage.setItem(key, val);
+
+      // Theme
+      const themeSelect = document.getElementById('theme-select');
+      const applyTheme = (theme) => {
+        if (theme === 'auto') {
+          const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+        } else {
+          document.documentElement.setAttribute('data-theme', theme);
+        }
+      };
+      const initTheme = () => {
+        const saved = getStorage('cloudavenue-theme', 'auto');
+        if (themeSelect) themeSelect.value = saved;
+        applyTheme(saved);
+      };
+      if (themeSelect) {
+        themeSelect.addEventListener('change', (e) => {
+          setStorage('cloudavenue-theme', e.target.value);
+          applyTheme(e.target.value);
+        });
+      }
+
+      // Language
+      const langSelect = document.getElementById('lang-select');
+      const applyLang = (lang) => {
+        document.documentElement.setAttribute('lang', lang);
+      };
+      const initLang = () => {
+        const defaultLang = (navigator.language || navigator.userLanguage).startsWith('ja') ? 'ja' : 'en';
+        const saved = getStorage('cloudavenue-lang', defaultLang);
+        if (langSelect) langSelect.value = saved;
+        applyLang(saved);
+      };
+      if (langSelect) {
+        langSelect.addEventListener('change', (e) => {
+          setStorage('cloudavenue-lang', e.target.value);
+          applyLang(e.target.value);
+        });
+      }
+
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        if (getStorage('cloudavenue-theme', 'auto') === 'auto') {
+          applyTheme('auto');
+        }
+      });
+
+      initTheme();
+      initLang();
+    })();
+  </script>
+
+  <!-- App Specific Script -->
   <script>
     const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('fileInput');
@@ -370,9 +443,19 @@
     const progress = document.getElementById('progress');
     const canvas = document.getElementById('canvas');
     
-    let loadedImages = []; // {name, image, dataUrl}
-    let unitMode = 'px'; // 'px' or 'percent'
+    let loadedImages = [];
+    let unitMode = 'px';
     
+    // Updates UI texts based on language
+    const updateDynamicTexts = () => {
+      if (loadedImages.length > 0) {
+        const isEn = document.documentElement.lang === 'en';
+        fileCount.innerHTML = isEn ? `Loaded files: ${loadedImages.length}` : `読み込んだファイル: ${loadedImages.length}件`;
+      }
+    };
+
+    document.getElementById('lang-select').addEventListener('change', updateDynamicTexts);
+
     // 単位切り替え
     unitPx.addEventListener('click', () => {
       if (unitMode === 'px') return;
@@ -396,7 +479,6 @@
     
     function convertValues(from, to) {
       if (loadedImages.length === 0) return;
-      
       const firstImg = loadedImages[0].image;
       
       if (from === 'px' && to === 'percent') {
@@ -488,7 +570,7 @@
     }
     
     function showUI() {
-      fileCount.textContent = `読み込んだファイル: ${loadedImages.length}件`;
+      updateDynamicTexts();
       controls.classList.remove('hidden');
       previewContainer.classList.remove('hidden');
       btnContainer.classList.remove('hidden');
@@ -500,7 +582,6 @@
     function updateAllPreviews() {
       previewGrid.innerHTML = '';
       
-      // 1枚の時は大きく表示
       if (loadedImages.length === 1) {
         previewGrid.classList.add('single-image');
       } else {
@@ -560,7 +641,6 @@
       let left = parseFloat(leftCut.value);
       let right = parseFloat(rightCut.value);
       
-      // パーセンテージの場合はピクセルに変換
       if (unitMode === 'percent') {
         top = Math.round((top / 100) * originalImage.height);
         bottom = Math.round((bottom / 100) * originalImage.height);
@@ -604,7 +684,6 @@
       let left = parseFloat(leftCut.value);
       let right = parseFloat(rightCut.value);
       
-      // パーセンテージの場合はピクセルに変換
       if (unitMode === 'percent') {
         top = Math.round((top / 100) * item.image.height);
         bottom = Math.round((bottom / 100) * item.image.height);
@@ -626,7 +705,6 @@
       });
     }
     
-    // スライダーと数値入力の同期
     topCut.addEventListener('input', () => { topCutNum.value = topCut.value; updateAllOverlays(); });
     topCutNum.addEventListener('input', () => { topCut.value = topCutNum.value; updateAllOverlays(); });
     bottomCut.addEventListener('input', () => { bottomCutNum.value = bottomCut.value; updateAllOverlays(); });
@@ -638,7 +716,6 @@
     
     window.addEventListener('resize', updateAllOverlays);
     
-    // クリア
     clearBtn.addEventListener('click', () => {
       loadedImages = [];
       previewGrid.innerHTML = '';
@@ -649,27 +726,27 @@
       fileInput.value = '';
     });
     
-    // 一括ダウンロード
     downloadBtn.addEventListener('click', async () => {
       if (loadedImages.length === 0) return;
       
       downloadBtn.disabled = true;
       progress.classList.remove('hidden');
-      progress.textContent = '処理中...';
+      
+      const isEn = document.documentElement.lang === 'en';
+      progress.textContent = isEn ? 'Processing...' : '処理中...';
       
       const zip = new JSZip();
       const ctx = canvas.getContext('2d');
       
       for (let i = 0; i < loadedImages.length; i++) {
         const item = loadedImages[i];
-        progress.textContent = `処理中... ${i + 1} / ${loadedImages.length}`;
+        progress.textContent = isEn ? `Processing... ${i + 1} / ${loadedImages.length}` : `処理中... ${i + 1} / ${loadedImages.length}`;
         
         let top = parseFloat(topCut.value);
         let bottom = parseFloat(bottomCut.value);
         let left = parseFloat(leftCut.value);
         let right = parseFloat(rightCut.value);
         
-        // パーセンテージの場合はピクセルに変換
         if (unitMode === 'percent') {
           top = Math.round((top / 100) * item.image.height);
           bottom = Math.round((bottom / 100) * item.image.height);
@@ -693,11 +770,10 @@
         const base64 = dataUrl.split(',')[1];
         zip.file(item.name, base64, {base64: true});
         
-        // UIがフリーズしないように少し待つ
         await new Promise(resolve => setTimeout(resolve, 10));
       }
       
-      progress.textContent = 'ZIPファイル作成中...';
+      progress.textContent = isEn ? 'Zipping files...' : 'ZIPファイル作成中...';
       
       const blob = await zip.generateAsync({type: 'blob'});
       const link = document.createElement('a');
@@ -705,13 +781,9 @@
       link.href = URL.createObjectURL(blob);
       link.click();
       
-      progress.textContent = `完了！ ${loadedImages.length} ファイルを処理しました`;
+      progress.textContent = isEn ? `Done! Processed ${loadedImages.length} files.` : `完了！ ${loadedImages.length} ファイルを処理しました`;
       downloadBtn.disabled = false;
     });
   </script>
-
-  <footer>
-    <a href="https://cloudavenue.jp" target="_blank">cloudavenue.jp</a>
-  </footer>
 </body>
 </html>

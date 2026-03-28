@@ -1,509 +1,762 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja" data-theme="auto">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tag Extractor</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
-  :root {
-    --bg: #0f1117; --surface: #1a1d27; --surface2: #242836;
-    --border: #2e3345; --text: #e2e4eb; --text-dim: #8b90a0;
-    --accent: #4f8ff7; --green: #34d399; --green-dim: #064e3b;
-    --accent-pg2: #f7934f; --red: #f87171; --orange-dim: #3a2211;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    font-family: 'JetBrains Mono', monospace;
-    background: var(--bg); color: var(--text);
-    min-height: 100vh; padding: 40px 20px;
-    display: flex; flex-direction: column; align-items: center; gap: 20px;
-  }
-  
-  /* ── Navigation & Header ── */
-  .top-nav {
-    width: 100%; max-width: 1280px; margin-bottom: -10px;
-  }
-  .back-link {
-    color: var(--text-dim); text-decoration: none; font-size: 12px;
-    display: inline-flex; align-items: center; gap: 6px; transition: color 0.2s;
-  }
-  .back-link:hover { color: var(--accent); }
-  h1 { font-size: 16px; font-weight: 600; width: 100%; max-width: 1280px; text-align: left;}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HTML Tag Extractor</title>
+  <style id="cloudavenue-shared-css">
+    /* --- Base Styles & Theme --- */
+    :root {
+      /* Dull / Smoky Color Palette (Light Mode Default) */
+      --bg: #f3f5f3;
+      --surface: #ffffff;
+      --surface2: #dae0da;
+      --border: #cad1ca;
+      --text: #3c453c;
+      --text-dim: #758075;
+      --accent: #78909c;
+      --accent-dim: #b0bec5;
+      --primary: #81a18b;
+      --primary-hover: #6d8a77;
+      --sans-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      --mono-font: 'JetBrains Mono', 'SF Mono', monospace;
+      
+      /* Context Specific mappings for Tag Extractor */
+      --pg1-color: #78909c;
+      --pg2-color: #b08d6a; /* dull orange */
+      --green: #81a18b;
+      --green-dim: #cfdfd5;
+      --red: #c98a8a;
+    }
 
-  /* ── Settings Panel ── */
-  .settings-wrap {
-    width: 100%; max-width: 1280px;
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 6px; padding: 14px; margin-bottom: 10px;
-  }
-  .settings-header {
-    display: flex; justify-content: space-between; align-items: center;
-    cursor: pointer; font-size: 12px; font-weight: 600; color: var(--text);
-  }
-  .settings-header span { display: flex; align-items: center; gap: 8px; }
-  .settings-content {
-    margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border);
-    display: none;
-  }
-  .settings-content.open { display: block; }
-  .preset-btns { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap;}
-  .preset-btns button {
-    background: var(--surface2); border: 1px solid var(--border);
-    color: var(--text); padding: 4px 10px; border-radius: 4px;
-    font-size: 10px; cursor: pointer; transition: all 0.2s;
-  }
-  .preset-btns button:hover { border-color: var(--accent); color: var(--accent); }
-  .checkbox-grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px;
-  }
-  .checkbox-label {
-    font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text-dim);
-  }
-  .checkbox-label:hover { color: var(--text); }
-  .checkbox-label input { accent-color: var(--accent); cursor: pointer; }
+    [data-theme="dark"] {
+      --bg: #1e2220;
+      --surface: #262b28;
+      --surface2: #303632;
+      --border: #424a44;
+      --text: #e6e9e6;
+      --text-dim: #a0afa4;
+      --accent: #90a4ae;
+      --accent-dim: #607d8b;
+      --primary: #6d8a77;
+      --primary-hover: #81a18b;
 
-  /* ── Columns & IO ── */
-  .columns {
-    width: 100%; max-width: 1280px;
-    display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
-  }
-  .col-header {
-    font-size: 11px; font-weight: 600; margin-bottom: 10px;
-    letter-spacing: 0.08em; display: flex; align-items: center; justify-content: space-between;
-  }
-  .col-pg1 .col-header span { color: var(--accent); }
-  .col-pg2 .col-header span { color: var(--accent-pg2); }
+      --pg1-color: #90a4ae;
+      --pg2-color: #c99c75;
+      --green: #81a18b;
+      --green-dim: #2b3d31;
+      --red: #c98a8a;
+    }
 
-  textarea {
-    width: 100%; height: 100px;
-    font-family: inherit; font-size: 11px; padding: 10px;
-    border: 1px solid var(--border); border-radius: 6px;
-    background: var(--surface); color: var(--text);
-    resize: vertical; margin-bottom: 16px;
-  }
-  textarea:focus { outline: none; }
-  .col-pg1 textarea:focus { border-color: var(--accent); }
-  .col-pg2 textarea:focus { border-color: var(--accent-pg2); }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--sans-font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
 
-  /* ── Results ── */
-  .results { display: flex; flex-direction: column; gap: 10px; }
-  .row {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 6px; padding: 10px 14px;
-    display: flex; align-items: baseline; gap: 10px;
-  }
-  .row .label { font-size: 10px; font-weight: 600; white-space: nowrap; min-width: 90px; }
-  .col-pg1 .row .label { color: var(--accent); }
-  .col-pg2 .row .label { color: var(--accent-pg2); }
-  .row .value { font-size: 12px; flex: 1; word-break: break-all; line-height: 1.5; }
-  .row .value.empty { color: var(--text-dim); font-style: italic; }
+    /* --- Language Toggle CSS --- */
+    html[lang="ja"] [lang="en"] { display: none !important; }
+    html[lang="en"] [lang="ja"] { display: none !important; }
 
-  /* ── Buttons & Bottom Bar ── */
-  button.action-btn {
-    font-family: inherit; font-size: 10px; padding: 3px 8px;
-    border: 1px solid var(--border); border-radius: 4px;
-    background: var(--surface2); color: var(--text-dim);
-    cursor: pointer; white-space: nowrap; transition: all 0.2s ease;
-  }
-  .copy-btn:hover { border-color: var(--green); color: var(--green); }
-  .copy-btn.copied { border-color: var(--green); color: var(--green); background: var(--green-dim); }
-  .clear-btn:hover, .clear-all-btn:hover { border-color: var(--red); color: var(--red); }
+    /* --- Layout & Utilities --- */
+    .container {
+      width: 100%;
+      max-width: 1400px; /* wider for this tool */
+      margin: 0 auto;
+      padding: 0 20px 40px;
+      flex: 1;
+    }
+    a { color: var(--accent); text-decoration: none; transition: color 0.2s; }
+    a:hover { color: var(--text); }
+    h1 { font-size: 24px; margin-bottom: 20px; color: var(--text); }
+    .hidden { display: none !important; }
 
-  .bottom-bar {
-    width: 100%; max-width: 1280px;
-    display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-top: 10px;
-  }
-  .save-area { display: flex; align-items: center; gap: 8px; flex: 1; }
-  .memo-input {
-    font-family: inherit; font-size: 11px; padding: 5px 10px;
-    border: 1px solid var(--border); border-radius: 4px;
-    background: var(--surface); color: var(--text);
-    flex: 1; min-width: 0;
-  }
-  .memo-input:focus { outline: none; border-color: var(--text-dim); }
-  .memo-input::placeholder { color: var(--text-dim); }
-  .save-btn { padding: 5px 14px; border-color: var(--accent); color: var(--accent); flex-shrink: 0; }
-  .save-btn:hover { background: #1a2a4a; }
-  
-  .right-btns { display: flex; gap: 8px; flex-shrink: 0; }
-  .txt-btn { padding: 5px 14px; border-color: var(--accent-pg2); color: var(--accent-pg2); }
-  .txt-btn:hover { background: var(--orange-dim); }
-  .csv-btn { padding: 5px 14px; border-color: var(--green); color: var(--green); }
-  .csv-btn:hover { background: var(--green-dim); }
-  .clear-all-btn { padding: 5px 14px; }
+    /* --- Top Nav (Header) --- */
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .nav-right { display: flex; align-items: center; gap: 10px; }
+    .nav-left { display: flex; align-items: center; justify-content: flex-start; gap: 15px; margin-right: auto; }
+    .back-link {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .back-link:hover { color: var(--text); }
 
-  /* ── History ── */
-  .history-wrap { width: 100%; max-width: 1280px; margin-top: 20px;}
-  .history-header {
-    font-size: 10px; color: var(--text-dim); margin-bottom: 10px;
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .history-list { display: flex; flex-direction: column; gap: 8px; }
-  .history-item {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 6px; padding: 10px 14px; font-size: 11px;
-  }
-  .h-memo { color: var(--text-dim); font-size: 10px; word-break: break-all; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed var(--border);}
-  .h-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; margin-bottom: 8px;}
-  .h-field { display: flex; gap: 8px; align-items: baseline; }
-  .h-label { font-size: 10px; font-weight: 600; white-space: nowrap; min-width: 90px; }
-  .h-pg1 .h-label { color: var(--accent); }
-  .h-pg2 .h-label { color: var(--accent-pg2); }
-  .h-val { word-break: break-all; line-height: 1.5; flex: 1; }
-  .h-meta { font-size: 10px; color: var(--text-dim); display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 8px;}
-  .history-del:hover { border-color: var(--red); color: var(--red); }
+    /* --- Toggles (Select) --- */
+    .ctrl-select {
+      font-family: var(--sans-font);
+      font-size: 12px;
+      padding: 4px 8px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      outline: none;
+    }
+    .ctrl-select:focus { border-color: var(--accent); }
 
-  @media (max-width: 720px) {
-    .columns, .h-grid { grid-template-columns: 1fr; }
-    .bottom-bar { flex-direction: column; align-items: stretch; }
-    .save-area { flex-wrap: wrap; }
-  }
-</style>
+    /* --- Footer --- */
+    .main-footer {
+      text-align: center;
+      padding: 30px 20px;
+      margin-top: auto;
+      font-size: 14px;
+      color: var(--text-dim);
+    }
+
+    /* --- Tool Specific Instructions --- */
+    .instructions {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    }
+    .instructions summary {
+      padding: 12px 16px;
+      font-weight: 600;
+      cursor: pointer;
+      list-style: none; /* remove default arrow in some browsers */
+      display: flex;
+      align-items: center;
+      color: var(--text);
+      font-size: 14px;
+    }
+    .instructions summary::-webkit-details-marker { display: none; }
+    .instructions summary::before {
+      content: "▶";
+      font-size: 10px;
+      margin-right: 10px;
+      color: var(--text-dim);
+      transition: transform 0.2s;
+    }
+    .instructions[open] summary::before { transform: rotate(90deg); }
+    .instructions-content {
+      padding: 0 16px 16px 30px;
+      font-size: 13px;
+      color: var(--text-dim);
+      line-height: 1.6;
+    }
+    .instructions-content ul { padding-left: 20px; margin-top: 8px; }
+
+    /* --- Tool Specific Styles --- */
+    .settings-wrap {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 6px; padding: 14px; margin-bottom: 20px;
+    }
+    .settings-header {
+      display: flex; justify-content: space-between; align-items: center;
+      cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text);
+    }
+    .settings-header span { display: flex; align-items: center; gap: 8px; }
+    .settings-content {
+      margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border);
+      display: none;
+    }
+    .settings-content.open { display: block; }
+    .preset-btns { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap;}
+    .preset-btns button {
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); padding: 4px 10px; border-radius: 4px;
+      font-size: 11px; cursor: pointer; transition: all 0.2s; font-family: var(--sans-font);
+    }
+    .preset-btns button:hover { border-color: var(--accent); color: var(--accent); }
+    .checkbox-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px;
+    }
+    .checkbox-label {
+      font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text-dim);
+      font-family: var(--mono-font);
+    }
+    .checkbox-label:hover { color: var(--text); }
+    .checkbox-label input { accent-color: var(--accent); cursor: pointer; }
+
+    /* Columns */
+    .columns {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+    }
+    .col-header {
+      font-size: 13px; font-weight: 600; margin-bottom: 10px;
+      letter-spacing: 0.05em; display: flex; align-items: center; justify-content: space-between;
+    }
+    .col-pg1 .col-header span { color: var(--pg1-color); }
+    .col-pg2 .col-header span { color: var(--pg2-color); }
+
+    textarea {
+      width: 100%; height: 120px;
+      font-family: var(--mono-font); font-size: 12px; padding: 12px;
+      border: 1px solid var(--border); border-radius: 6px;
+      background: var(--surface); color: var(--text);
+      resize: vertical; margin-bottom: 16px;
+    }
+    textarea:focus { outline: none; }
+    .col-pg1 textarea:focus { border-color: var(--pg1-color); }
+    .col-pg2 textarea:focus { border-color: var(--pg2-color); }
+
+    /* Results */
+    .results { display: flex; flex-direction: column; gap: 10px; }
+    .row {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 6px; padding: 10px 14px;
+      display: flex; align-items: baseline; gap: 10px; font-family: var(--mono-font);
+    }
+    .row .label { font-size: 11px; font-weight: 600; white-space: nowrap; min-width: 90px; }
+    .col-pg1 .row .label { color: var(--pg1-color); }
+    .col-pg2 .row .label { color: var(--pg2-color); }
+    .row .value { font-size: 13px; flex: 1; word-break: break-all; line-height: 1.5; color: var(--text); }
+    .row .value.empty { color: var(--text-dim); font-style: italic; }
+
+    /* Action Buttons */
+    button.action-btn {
+      font-family: var(--sans-font); font-size: 12px; padding: 4px 10px;
+      border: 1px solid var(--border); border-radius: 4px;
+      background: var(--surface2); color: var(--text-dim);
+      cursor: pointer; white-space: nowrap; transition: all 0.2s ease;
+      font-weight: 600;
+    }
+    .copy-btn:hover { border-color: var(--green); color: var(--green); }
+    .copy-btn.copied { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+    .clear-btn:hover, .clear-all-btn:hover { border-color: var(--red); color: var(--red); }
+
+    .bottom-bar {
+      display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-top: 20px;
+    }
+    .save-area { display: flex; align-items: center; gap: 8px; flex: 1; }
+    .memo-input {
+      font-family: var(--sans-font); font-size: 13px; padding: 8px 12px;
+      border: 1px solid var(--border); border-radius: 6px;
+      background: var(--surface); color: var(--text);
+      flex: 1; min-width: 0;
+    }
+    .memo-input:focus { outline: none; border-color: var(--accent); }
+    .memo-input::placeholder { color: var(--text-dim); }
+    .save-btn { padding: 8px 16px; border-color: var(--primary); color: var(--primary); flex-shrink: 0; }
+    .save-btn:hover { background: var(--surface2); }
+    
+    .right-btns { display: flex; gap: 8px; flex-shrink: 0; }
+    .txt-btn { padding: 8px 16px; border-color: var(--pg2-color); color: var(--pg2-color); }
+    .txt-btn:hover { background: var(--surface2); }
+    .csv-btn { padding: 8px 16px; border-color: var(--green); color: var(--green); }
+    .csv-btn:hover { background: var(--surface2); }
+    .clear-all-btn { padding: 8px 16px; }
+
+    /* History */
+    .history-wrap { margin-top: 30px;}
+    .history-header {
+      font-size: 12px; color: var(--text-dim); margin-bottom: 12px; font-weight: bold;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .history-list { display: flex; flex-direction: column; gap: 12px; }
+    .history-item {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 6px; padding: 14px; font-size: 12px;
+    }
+    .h-memo { color: var(--text-dim); font-size: 13px; font-weight: bold; word-break: break-all; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px dashed var(--border);}
+    .h-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; margin-bottom: 12px;}
+    .h-field { display: flex; gap: 10px; align-items: baseline; font-family: var(--mono-font); }
+    .h-label { font-size: 11px; font-weight: 600; white-space: nowrap; min-width: 90px; }
+    .h-pg1 .h-label { color: var(--pg1-color); }
+    .h-pg2 .h-label { color: var(--pg2-color); }
+    .h-val { word-break: break-all; line-height: 1.5; flex: 1; color: var(--text); }
+    .h-meta { font-size: 11px; color: var(--text-dim); display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 12px;}
+    .history-del:hover { border-color: var(--red); color: var(--red); }
+
+    @media (max-width: 768px) {
+      .columns, .h-grid { grid-template-columns: 1fr; }
+      .bottom-bar { flex-direction: column; align-items: stretch; }
+      .save-area { flex-wrap: wrap; }
+    }
+  </style>
 </head>
 <body>
 
-<div class="top-nav">
-  <a href="https://apps.cloudavenue.jp/" class="back-link">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-    Back
-  </a>
-</div>
-
-<h1>Tag Extractor</h1>
-
-<div class="settings-wrap">
-  <div class="settings-header" id="toggleSettings">
-    <span>⚙️ Settings (Presets & Tags)</span>
-    <span id="settingsIcon">▼</span>
-  </div>
-  <div class="settings-content" id="settingsContent">
-    <div class="preset-btns">
-      <button onclick="applyPreset(['title', 'description', 'keywords', 'h1'])">Basic SEO</button>
-      <button onclick="applyPreset(['og:title', 'og:description', 'og:image', 'og:url'])">OGP (SNS)</button>
-      <button onclick="applyPreset(['twitter:card', 'twitter:title', 'twitter:description'])">Twitter</button>
-      <button onclick="applyPreset('all')">Select All</button>
-      <button onclick="applyPreset('none')">Clear All</button>
+  <!-- Shared Navigation Template -->
+  <nav class="top-nav">
+    <div class="nav-left">
+      <a href="/" class="back-link">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        <span lang="ja">トップに戻る</span><span lang="en">Back to Top</span>
+      </a>
     </div>
-    <div class="checkbox-grid" id="checkboxGrid">
+    <div class="nav-right">
+      <select id="theme-select" class="ctrl-select">
+        <option value="auto" lang="ja">テーマ: 自動</option>
+        <option value="auto" lang="en">Theme: Auto</option>
+        <option value="light" lang="ja">ライト</option>
+        <option value="light" lang="en">Light</option>
+        <option value="dark" lang="ja">ダーク</option>
+        <option value="dark" lang="en">Dark</option>
+      </select>
+      <select id="lang-select" class="ctrl-select">
+        <option value="ja">日本語</option>
+        <option value="en">English</option>
+      </select>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h1>
+      <span lang="ja">HTMLタグ抽出ツール</span>
+      <span lang="en">HTML Tag Extractor</span>
+    </h1>
+
+    <details class="instructions">
+      <summary>
+        <span lang="ja">使い方</span>
+        <span lang="en">How to use</span>
+      </summary>
+      <div class="instructions-content">
+        <div lang="ja">
+          <p>WebページのHTMLソースコード（テキスト）を貼り付けると、設定したメタタグや見出しなどのテキスト・属性要素を瞬時に抽出します。</p>
+          <ul>
+            <li><strong>設定</strong>: 抽出したいタグのON/OFFが可能です。Basic SEO や OGP などのプリセットも用意されています。</li>
+            <li><strong>2画面比較</strong>: 変更前と変更後のHTMLソースを比較するのに便利な2ペイン構成です。Page 2は空のままでも使用できます。</li>
+            <li><strong>履歴＆書き出し</strong>: 「Save to History」で下に履歴データを残すことができ、後からまとめてCSVやTXT形式でダウンロードできます。</li>
+          </ul>
+        </div>
+        <div lang="en">
+          <p>Paste the HTML source code to instantly extract semantic texts and attribute elements such as meta tags and headers based on your settings.</p>
+          <ul>
+            <li><strong>Settings</strong>: You can toggle which tags to extract. Presets like Basic SEO and OGP are available.</li>
+            <li><strong>2-Pane Comparison</strong>: Useful for comparing HTML before and after modifications. "Page 2" can be left blank.</li>
+            <li><strong>History & Export</strong>: Save results to the list below and download them later safely as CSV or TXT.</li>
+          </ul>
+        </div>
       </div>
+    </details>
+
+    <div class="settings-wrap">
+      <div class="settings-header" id="toggleSettings">
+        <span>⚙️ <span lang="ja">抽出設定</span><span lang="en">Settings (Presets & Tags)</span></span>
+        <span id="settingsIcon">▼</span>
+      </div>
+      <div class="settings-content" id="settingsContent">
+        <div class="preset-btns">
+          <button onclick="applyPreset(['title', 'description', 'keywords', 'h1'])">Basic SEO</button>
+          <button onclick="applyPreset(['og:title', 'og:description', 'og:image', 'og:url'])">OGP (SNS)</button>
+          <button onclick="applyPreset(['twitter:card', 'twitter:title', 'twitter:description'])">Twitter</button>
+          <button onclick="applyPreset('all')">Select All</button>
+          <button onclick="applyPreset('none')">Clear All</button>
+        </div>
+        <div class="checkbox-grid" id="checkboxGrid"></div>
+      </div>
+    </div>
+
+    <div class="columns">
+      <div class="col-pg1">
+        <div class="col-header">
+          <span>Page 1</span>
+          <button class="action-btn clear-btn" id="clearPg1">
+            <span lang="ja">クリア</span><span lang="en">Clear</span>
+          </button>
+        </div>
+        <textarea id="inputPg1" placeholder="Paste HTML source here..."></textarea>
+        <div class="results" id="resultsPg1"></div>
+      </div>
+
+      <div class="col-pg2">
+        <div class="col-header">
+          <span>Page 2 (Optional)</span>
+          <button class="action-btn clear-btn" id="clearPg2">
+            <span lang="ja">クリア</span><span lang="en">Clear</span>
+          </button>
+        </div>
+        <textarea id="inputPg2" placeholder="Paste HTML source here..."></textarea>
+        <div class="results" id="resultsPg2"></div>
+      </div>
+    </div>
+
+    <div class="bottom-bar">
+      <div class="save-area">
+        <button class="action-btn save-btn" id="saveBtn">+ Save to History</button>
+        <input type="text" class="memo-input" id="memoInput" placeholder="Memo: Page name, URL, notes... (optional)">
+      </div>
+      <div class="right-btns">
+        <button class="action-btn txt-btn" id="txtBtn">Export TXT</button>
+        <button class="action-btn csv-btn" id="csvBtn">Export CSV</button>
+        <button class="action-btn clear-all-btn" id="clearAll">
+          <span lang="ja">すべてクリア</span><span lang="en">Clear All</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="history-wrap" id="historyWrap" style="display:none">
+      <div class="history-header">
+        <span>HISTORY</span>
+        <button id="clearHistory" class="action-btn clear-btn">
+          <span lang="ja">履歴を削除</span><span lang="en">Clear History</span>
+        </button>
+      </div>
+      <div class="history-list" id="historyList"></div>
+    </div>
   </div>
-</div>
 
-<div class="columns">
-  <div class="col-pg1">
-    <div class="col-header"><span>Page 1</span><button class="action-btn clear-btn" id="clearPg1">Clear</button></div>
-    <textarea id="inputPg1" placeholder="Paste HTML source here"></textarea>
-    <div class="results" id="resultsPg1"></div>
-  </div>
+  <footer class="main-footer">
+    <a href="https://cloudavenue.jp" target="_blank">cloudavenue.jp</a>
+  </footer>
 
-  <div class="col-pg2">
-    <div class="col-header"><span>Page 2 (Optional)</span><button class="action-btn clear-btn" id="clearPg2">Clear</button></div>
-    <textarea id="inputPg2" placeholder="Paste HTML source here"></textarea>
-    <div class="results" id="resultsPg2"></div>
-  </div>
-</div>
+  <!-- Shared Script Template -->
+  <script id="cloudavenue-shared-script">
+    (function() {
+      const getStorage = (key, defaultVal) => localStorage.getItem(key) || defaultVal;
+      const setStorage = (key, val) => localStorage.setItem(key, val);
 
-<div class="bottom-bar">
-  <div class="save-area">
-    <button class="action-btn save-btn" id="saveBtn">+ Save to History</button>
-    <input type="text" class="memo-input" id="memoInput" placeholder="Memo: Page name, URL, notes... (optional)">
-  </div>
-  <div class="right-btns">
-    <button class="action-btn txt-btn" id="txtBtn">Export TXT</button>
-    <button class="action-btn csv-btn" id="csvBtn">Export CSV</button>
-    <button class="action-btn clear-all-btn" id="clearAll">Clear All</button>
-  </div>
-</div>
+      // Theme
+      const themeSelect = document.getElementById('theme-select');
+      const applyTheme = (theme) => {
+        if (theme === 'auto') {
+          const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+        } else {
+          document.documentElement.setAttribute('data-theme', theme);
+        }
+      };
+      const initTheme = () => {
+        const saved = getStorage('cloudavenue-theme', 'auto');
+        if (themeSelect) themeSelect.value = saved;
+        applyTheme(saved);
+      };
+      if (themeSelect) {
+        themeSelect.addEventListener('change', (e) => {
+          setStorage('cloudavenue-theme', e.target.value);
+          applyTheme(e.target.value);
+        });
+      }
 
-<div class="history-wrap" id="historyWrap" style="display:none">
-  <div class="history-header">
-    <span>HISTORY</span>
-    <button id="clearHistory" class="action-btn clear-btn">Clear History</button>
-  </div>
-  <div class="history-list" id="historyList"></div>
-</div>
+      // Language
+      const langSelect = document.getElementById('lang-select');
+      const applyLang = (lang) => {
+        document.documentElement.setAttribute('lang', lang);
+      };
+      const initLang = () => {
+        const defaultLang = (navigator.language || navigator.userLanguage).startsWith('ja') ? 'ja' : 'en';
+        const saved = getStorage('cloudavenue-lang', defaultLang);
+        if (langSelect) langSelect.value = saved;
+        applyLang(saved);
+      };
+      if (langSelect) {
+        langSelect.addEventListener('change', (e) => {
+          setStorage('cloudavenue-lang', e.target.value);
+          applyLang(e.target.value);
+        });
+      }
 
-<script>
-// ── Tag Configuration ──
-const TAGS = [
-  { id: 'title', label: 'title', selector: 'title', attr: 'text', default: true },
-  { id: 'description', label: 'description', selector: 'meta[name="description" i]', attr: 'content', default: true },
-  { id: 'keywords', label: 'keywords', selector: 'meta[name="keywords" i]', attr: 'content', default: false },
-  { id: 'h1', label: 'h1 (first)', selector: 'h1', attr: 'text', default: false },
-  { id: 'canonical', label: 'canonical', selector: 'link[rel="canonical" i]', attr: 'href', default: false },
-  { id: 'og:title', label: 'og:title', selector: 'meta[property="og:title" i]', attr: 'content', default: false },
-  { id: 'og:description', label: 'og:description', selector: 'meta[property="og:description" i]', attr: 'content', default: false },
-  { id: 'og:image', label: 'og:image', selector: 'meta[property="og:image" i]', attr: 'content', default: false },
-  { id: 'og:url', label: 'og:url', selector: 'meta[property="og:url" i]', attr: 'content', default: false },
-  { id: 'twitter:card', label: 'twitter:card', selector: 'meta[name="twitter:card" i]', attr: 'content', default: false },
-  { id: 'twitter:title', label: 'twitter:title', selector: 'meta[name="twitter:title" i]', attr: 'content', default: false },
-  { id: 'twitter:description', label: 'twitter:description', selector: 'meta[name="twitter:description" i]', attr: 'content', default: false }
-];
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        if (getStorage('cloudavenue-theme', 'auto') === 'auto') {
+          applyTheme('auto');
+        }
+      });
 
-let activeTags = [];
+      initTheme();
+      initLang();
+    })();
+  </script>
 
-// ── Settings & UI Initialization ──
-function initSettings() {
-  const grid = document.getElementById('checkboxGrid');
-  const savedSettings = JSON.parse(localStorage.getItem('tagExtractorConfig'));
-  
-  TAGS.forEach(tag => {
-    const isChecked = savedSettings ? savedSettings.includes(tag.id) : tag.default;
-    const label = document.createElement('label');
-    label.className = 'checkbox-label';
-    label.innerHTML = `<input type="checkbox" value="${tag.id}" ${isChecked ? 'checked' : ''}> ${tag.label}`;
-    
-    label.querySelector('input').addEventListener('change', () => {
+  <!-- App Specific Script -->
+  <script>
+    // ── Tag Configuration ──
+    const TAGS = [
+      { id: 'title', label: 'title', selector: 'title', attr: 'text', default: true },
+      { id: 'description', label: 'description', selector: 'meta[name="description" i]', attr: 'content', default: true },
+      { id: 'keywords', label: 'keywords', selector: 'meta[name="keywords" i]', attr: 'content', default: false },
+      { id: 'h1', label: 'h1 (first)', selector: 'h1', attr: 'text', default: false },
+      { id: 'canonical', label: 'canonical', selector: 'link[rel="canonical" i]', attr: 'href', default: false },
+      { id: 'og:title', label: 'og:title', selector: 'meta[property="og:title" i]', attr: 'content', default: false },
+      { id: 'og:description', label: 'og:description', selector: 'meta[property="og:description" i]', attr: 'content', default: false },
+      { id: 'og:image', label: 'og:image', selector: 'meta[property="og:image" i]', attr: 'content', default: false },
+      { id: 'og:url', label: 'og:url', selector: 'meta[property="og:url" i]', attr: 'content', default: false },
+      { id: 'twitter:card', label: 'twitter:card', selector: 'meta[name="twitter:card" i]', attr: 'content', default: false },
+      { id: 'twitter:title', label: 'twitter:title', selector: 'meta[name="twitter:title" i]', attr: 'content', default: false },
+      { id: 'twitter:description', label: 'twitter:description', selector: 'meta[name="twitter:description" i]', attr: 'content', default: false }
+    ];
+
+    let activeTags = [];
+
+    // ── Settings & UI Initialization ──
+    function initSettings() {
+      const grid = document.getElementById('checkboxGrid');
+      const savedSettings = JSON.parse(localStorage.getItem('tagExtractorConfig'));
+      
+      TAGS.forEach(tag => {
+        const isChecked = savedSettings ? savedSettings.includes(tag.id) : tag.default;
+        const label = document.createElement('label');
+        label.className = 'checkbox-label';
+        label.innerHTML = `<input type="checkbox" value="${tag.id}" ${isChecked ? 'checked' : ''}> ${tag.label}`;
+        
+        label.querySelector('input').addEventListener('change', () => {
+          updateActiveTags();
+          reExtract();
+        });
+        grid.appendChild(label);
+      });
+      updateActiveTags();
+    }
+
+    function updateActiveTags() {
+      const checkboxes = document.querySelectorAll('#checkboxGrid input:checked');
+      activeTags = Array.from(checkboxes).map(cb => cb.value);
+      localStorage.setItem('tagExtractorConfig', JSON.stringify(activeTags));
+      buildResultsUI();
+    }
+
+    function applyPreset(preset) {
+      const checkboxes = document.querySelectorAll('#checkboxGrid input');
+      checkboxes.forEach(cb => {
+        if (preset === 'all') cb.checked = true;
+        else if (preset === 'none') cb.checked = false;
+        else cb.checked = preset.includes(cb.value);
+      });
       updateActiveTags();
       reExtract();
-    });
-    grid.appendChild(label);
-  });
-  updateActiveTags();
-}
-
-function updateActiveTags() {
-  const checkboxes = document.querySelectorAll('#checkboxGrid input:checked');
-  activeTags = Array.from(checkboxes).map(cb => cb.value);
-  localStorage.setItem('tagExtractorConfig', JSON.stringify(activeTags));
-  buildResultsUI();
-}
-
-function applyPreset(preset) {
-  const checkboxes = document.querySelectorAll('#checkboxGrid input');
-  checkboxes.forEach(cb => {
-    if (preset === 'all') cb.checked = true;
-    else if (preset === 'none') cb.checked = false;
-    else cb.checked = preset.includes(cb.value);
-  });
-  updateActiveTags();
-  reExtract();
-}
-
-function buildResultsUI() {
-  const build = (containerId, colId) => {
-    const container = document.getElementById(containerId);
-    container.innerHTML = '';
-    activeTags.forEach(tagId => {
-      const tag = TAGS.find(t => t.id === tagId);
-      const elId = `v_${colId}_${tag.id}`;
-      container.innerHTML += `
-        <div class="row">
-          <span class="label">${tag.label}</span>
-          <span class="value empty" id="${elId}">n/a</span>
-          <button class="action-btn copy-btn" onclick="copyValue('${elId}', this)">Copy</button>
-        </div>
-      `;
-    });
-  };
-  build('resultsPg1', 'pg1');
-  build('resultsPg2', 'pg2');
-}
-
-// Settings Toggle
-document.getElementById('toggleSettings').addEventListener('click', () => {
-  const content = document.getElementById('settingsContent');
-  const icon = document.getElementById('settingsIcon');
-  content.classList.toggle('open');
-  icon.textContent = content.classList.contains('open') ? '▲' : '▼';
-});
-
-// ── Core Extraction Logic ──
-function extract(html, colId) {
-  if (!html.trim()) {
-    activeTags.forEach(tagId => setVal(`v_${colId}_${tagId}`, ''));
-    return;
-  }
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, 'text/html');
-
-  activeTags.forEach(tagId => {
-    const tagDef = TAGS.find(t => t.id === tagId);
-    const node = doc.querySelector(tagDef.selector);
-    let val = '';
-    if (node) {
-      val = tagDef.attr === 'text' ? node.textContent.trim() : (node.getAttribute(tagDef.attr) || '').trim();
     }
-    setVal(`v_${colId}_${tagId}`, val);
-  });
-}
 
-function reExtract() {
-  extract(document.getElementById('inputPg1').value, 'pg1');
-  extract(document.getElementById('inputPg2').value, 'pg2');
-}
-
-function setVal(id, val) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  if (val) { el.textContent = val; el.classList.remove('empty'); }
-  else { el.textContent = 'n/a'; el.classList.add('empty'); }
-}
-
-function getVal(id) {
-  const el = document.getElementById(id);
-  return (el && !el.classList.contains('empty')) ? el.textContent : '';
-}
-
-// Event Listeners for inputs
-document.getElementById('inputPg1').addEventListener('input', e => extract(e.target.value, 'pg1'));
-document.getElementById('inputPg2').addEventListener('input', e => extract(e.target.value, 'pg2'));
-
-function clearCol(colId) {
-  const inputId = colId === 'pg1' ? 'inputPg1' : 'inputPg2';
-  document.getElementById(inputId).value = '';
-  activeTags.forEach(tagId => setVal(`v_${colId}_${tagId}`, ''));
-}
-
-document.getElementById('clearPg1').addEventListener('click', () => clearCol('pg1'));
-document.getElementById('clearPg2').addEventListener('click', () => clearCol('pg2'));
-document.getElementById('clearAll').addEventListener('click', () => {
-  clearCol('pg1'); clearCol('pg2');
-  document.getElementById('memoInput').value = '';
-});
-
-// Copy Function
-window.copyValue = function(id, btn) {
-  const val = document.getElementById(id).textContent;
-  if (val === 'n/a') return;
-  navigator.clipboard.writeText(val).then(() => {
-    btn.classList.add('copied'); btn.textContent = 'Copied!';
-    setTimeout(() => { btn.classList.remove('copied'); btn.textContent = 'Copy'; }, 1200);
-  });
-};
-
-// ── History ──
-let history = [];
-
-function renderHistory() {
-  const wrap = document.getElementById('historyWrap');
-  const list = document.getElementById('historyList');
-  if (history.length === 0) { wrap.style.display = 'none'; return; }
-  wrap.style.display = 'block';
-  list.innerHTML = '';
-  
-  [...history].reverse().forEach((item, ri) => {
-    const i = history.length - 1 - ri;
-    const na = '<span style="color:var(--text-dim);font-style:italic">n/a</span>';
-    
-    let gridHtml = '';
-    Object.keys(item.data).forEach(tagId => {
-      const tagDef = TAGS.find(t => t.id === tagId);
-      if(!tagDef) return;
-      gridHtml += `
-        <div class="h-field h-pg1"><span class="h-label">${tagDef.label} (Pg1)</span><span class="h-val">${item.data[tagId].pg1 || na}</span></div>
-        <div class="h-field h-pg2"><span class="h-label">${tagDef.label} (Pg2)</span><span class="h-val">${item.data[tagId].pg2 || na}</span></div>
-      `;
-    });
-
-    const el = document.createElement('div');
-    el.className = 'history-item';
-    el.innerHTML = `
-      ${item.memo ? `<div class="h-memo">${item.memo}</div>` : ''}
-      <div class="h-grid">${gridHtml}</div>
-      <div class="h-meta"><span>${item.time}</span><button class="action-btn history-del" data-i="${i}">Delete</button></div>
-    `;
-    list.appendChild(el);
-  });
-  
-  list.querySelectorAll('.history-del').forEach(btn => {
-    btn.addEventListener('click', () => { history.splice(Number(btn.dataset.i), 1); renderHistory(); });
-  });
-}
-
-document.getElementById('saveBtn').addEventListener('click', () => {
-  const data = {};
-  let hasData = false;
-
-  activeTags.forEach(tagId => {
-    const valPg1 = getVal(`v_pg1_${tagId}`);
-    const valPg2 = getVal(`v_pg2_${tagId}`);
-    if (valPg1 || valPg2) hasData = true;
-    data[tagId] = { pg1: valPg1, pg2: valPg2 };
-  });
-
-  if (!hasData) return;
-  
-  const timeStr = new Date().toLocaleString('en-US', { hour12: false });
-  
-  history.push({
-    memo: document.getElementById('memoInput').value.trim(),
-    data: data,
-    time: timeStr
-  });
-  
-  document.getElementById('memoInput').value = '';
-  renderHistory();
-});
-
-document.getElementById('clearHistory').addEventListener('click', () => { history = []; renderHistory(); });
-
-// ── TXT Export ──
-document.getElementById('txtBtn').addEventListener('click', () => {
-  if (history.length === 0) return;
-  
-  let txtContent = "=== Tag Extractor Export ===\r\n\r\n";
-  
-  // 履歴を古い順（またはそのままの順）で書き出し
-  history.forEach((h, index) => {
-    txtContent += `[Entry ${index + 1}]\r\n`;
-    if (h.memo) txtContent += `Memo: ${h.memo}\r\n`;
-    txtContent += `Saved At: ${h.time}\r\n\r\n`;
-    
-    Object.keys(h.data).forEach(tagId => {
-      const tagDef = TAGS.find(t => t.id === tagId);
-      if (!tagDef) return;
+    function buildResultsUI() {
+      const build = (containerId, colId) => {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+        activeTags.forEach(tagId => {
+          const tag = TAGS.find(t => t.id === tagId);
+          const elId = `v_${colId}_${tag.id}`;
+          container.innerHTML += `
+            <div class="row">
+              <span class="label">${tag.label}</span>
+              <span class="value empty" id="${elId}">n/a</span>
+              <button class="action-btn copy-btn" onclick="copyValue('${elId}', this)">Copy</button>
+            </div>
+          `;
+        });
+      };
+      build('resultsPg1', 'pg1');
+      build('resultsPg2', 'pg2');
       
-      if (h.data[tagId].pg1) {
-        txtContent += `--- ${tagDef.label} (Page 1) ---\r\n${h.data[tagId].pg1}\r\n\r\n`;
-      }
-      if (h.data[tagId].pg2) {
-        txtContent += `--- ${tagDef.label} (Page 2) ---\r\n${h.data[tagId].pg2}\r\n\r\n`;
-      }
+      // Values might be wiped visually by rebuilding the DOM, so fill them back
+      reExtract();
+    }
+
+    // Settings Toggle
+    document.getElementById('toggleSettings').addEventListener('click', () => {
+      const content = document.getElementById('settingsContent');
+      const icon = document.getElementById('settingsIcon');
+      content.classList.toggle('open');
+      icon.textContent = content.classList.contains('open') ? '▲' : '▼';
     });
-    txtContent += "========================================\r\n\r\n";
-  });
 
-  const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8;' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `tag-extractor-${new Date().toISOString().slice(0,10)}.txt`;
-  a.click();
-});
+    // ── Core Extraction Logic ──
+    function extract(html, colId) {
+      if (!html.trim()) {
+        activeTags.forEach(tagId => setVal(`v_${colId}_${tagId}`, ''));
+        return;
+      }
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
 
-// ── CSV Export ──
-document.getElementById('csvBtn').addEventListener('click', () => {
-  if (history.length === 0) return;
-  
-  const usedTags = new Set();
-  history.forEach(h => Object.keys(h.data).forEach(tag => usedTags.add(tag)));
-  const tagList = Array.from(usedTags);
-  
-  let headers = ['Memo', 'Saved At'];
-  tagList.forEach(tagId => {
-    const label = TAGS.find(t => t.id === tagId)?.label || tagId;
-    headers.push(`${label} (Page 1)`, `${label} (Page 2)`);
-  });
+      activeTags.forEach(tagId => {
+        const tagDef = TAGS.find(t => t.id === tagId);
+        const node = doc.querySelector(tagDef.selector);
+        let val = '';
+        if (node) {
+          val = tagDef.attr === 'text' ? node.textContent.trim() : (node.getAttribute(tagDef.attr) || '').trim();
+        }
+        setVal(`v_${colId}_${tagId}`, val);
+      });
+    }
 
-  const rows = history.map(h => {
-    let row = [h.memo, h.time];
-    tagList.forEach(tagId => {
-      row.push(h.data[tagId]?.pg1 || '', h.data[tagId]?.pg2 || '');
+    function reExtract() {
+      extract(document.getElementById('inputPg1').value, 'pg1');
+      extract(document.getElementById('inputPg2').value, 'pg2');
+    }
+
+    function setVal(id, val) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (val) { el.textContent = val; el.classList.remove('empty'); }
+      else { el.textContent = 'n/a'; el.classList.add('empty'); }
+    }
+
+    function getVal(id) {
+      const el = document.getElementById(id);
+      return (el && !el.classList.contains('empty')) ? el.textContent : '';
+    }
+
+    // Event Listeners for inputs
+    document.getElementById('inputPg1').addEventListener('input', e => extract(e.target.value, 'pg1'));
+    document.getElementById('inputPg2').addEventListener('input', e => extract(e.target.value, 'pg2'));
+
+    function clearCol(colId) {
+      const inputId = colId === 'pg1' ? 'inputPg1' : 'inputPg2';
+      document.getElementById(inputId).value = '';
+      activeTags.forEach(tagId => setVal(`v_${colId}_${tagId}`, ''));
+    }
+
+    document.getElementById('clearPg1').addEventListener('click', () => clearCol('pg1'));
+    document.getElementById('clearPg2').addEventListener('click', () => clearCol('pg2'));
+    document.getElementById('clearAll').addEventListener('click', () => {
+      clearCol('pg1'); clearCol('pg2');
+      document.getElementById('memoInput').value = '';
     });
-    return row.map(v => `"${(v||'').replace(/"/g,'""')}"`).join(',');
-  });
 
-  const csv = '\uFEFF' + [headers.join(','), ...rows].join('\r\n');
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `tag-extractor-${new Date().toISOString().slice(0,10)}.csv`;
-  a.click();
-});
+    // Copy Function
+    window.copyValue = function(id, btn) {
+      const val = document.getElementById(id).textContent;
+      if (val === 'n/a') return;
+      navigator.clipboard.writeText(val).then(() => {
+        btn.classList.add('copied'); btn.textContent = 'Copied!';
+        setTimeout(() => { btn.classList.remove('copied'); btn.textContent = 'Copy'; }, 1200);
+      });
+    };
 
-// Boot
-initSettings();
-</script>
+    // ── History ──
+    let historyData = []; // renamed from history to avoid window.history conflicts
+
+    function renderHistory() {
+      const wrap = document.getElementById('historyWrap');
+      const list = document.getElementById('historyList');
+      if (historyData.length === 0) { wrap.style.display = 'none'; return; }
+      wrap.style.display = 'block';
+      list.innerHTML = '';
+      
+      const isEn = document.documentElement.lang === 'en';
+      
+      [...historyData].reverse().forEach((item, ri) => {
+        const i = historyData.length - 1 - ri;
+        const na = '<span style="color:var(--text-dim);font-style:italic">n/a</span>';
+        
+        let gridHtml = '';
+        Object.keys(item.data).forEach(tagId => {
+          const tagDef = TAGS.find(t => t.id === tagId);
+          if(!tagDef) return;
+          gridHtml += `
+            <div class="h-field h-pg1"><span class="h-label">${tagDef.label} (Pg1)</span><span class="h-val">${item.data[tagId].pg1 || na}</span></div>
+            <div class="h-field h-pg2"><span class="h-label">${tagDef.label} (Pg2)</span><span class="h-val">${item.data[tagId].pg2 || na}</span></div>
+          `;
+        });
+
+        const el = document.createElement('div');
+        el.className = 'history-item';
+        el.innerHTML = `
+          ${item.memo ? `<div class="h-memo">${item.memo}</div>` : ''}
+          <div class="h-grid">${gridHtml}</div>
+          <div class="h-meta"><span>${item.time}</span><button class="action-btn history-del" data-i="${i}">${isEn ? 'Delete' : '削除'}</button></div>
+        `;
+        list.appendChild(el);
+      });
+      
+      list.querySelectorAll('.history-del').forEach(btn => {
+        btn.addEventListener('click', () => { historyData.splice(Number(btn.dataset.i), 1); renderHistory(); });
+      });
+    }
+
+    document.getElementById('saveBtn').addEventListener('click', () => {
+      const data = {};
+      let hasData = false;
+
+      activeTags.forEach(tagId => {
+        const valPg1 = getVal(`v_pg1_${tagId}`);
+        const valPg2 = getVal(`v_pg2_${tagId}`);
+        if (valPg1 || valPg2) hasData = true;
+        data[tagId] = { pg1: valPg1, pg2: valPg2 };
+      });
+
+      if (!hasData) return;
+      
+      const timeStr = new Date().toLocaleString('en-US', { hour12: false });
+      
+      historyData.push({
+        memo: document.getElementById('memoInput').value.trim(),
+        data: data,
+        time: timeStr
+      });
+      
+      document.getElementById('memoInput').value = '';
+      renderHistory();
+    });
+
+    document.getElementById('clearHistory').addEventListener('click', () => { historyData = []; renderHistory(); });
+
+    // ── TXT Export ──
+    document.getElementById('txtBtn').addEventListener('click', () => {
+      if (historyData.length === 0) return;
+      
+      let txtContent = "=== Tag Extractor Export ===\r\n\r\n";
+      
+      historyData.forEach((h, index) => {
+        txtContent += `[Entry ${index + 1}]\r\n`;
+        if (h.memo) txtContent += `Memo: ${h.memo}\r\n`;
+        txtContent += `Saved At: ${h.time}\r\n\r\n`;
+        
+        Object.keys(h.data).forEach(tagId => {
+          const tagDef = TAGS.find(t => t.id === tagId);
+          if (!tagDef) return;
+          
+          if (h.data[tagId].pg1) {
+            txtContent += `--- ${tagDef.label} (Page 1) ---\r\n${h.data[tagId].pg1}\r\n\r\n`;
+          }
+          if (h.data[tagId].pg2) {
+            txtContent += `--- ${tagDef.label} (Page 2) ---\r\n${h.data[tagId].pg2}\r\n\r\n`;
+          }
+        });
+        txtContent += "========================================\r\n\r\n";
+      });
+
+      const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8;' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `tag-extractor-${new Date().toISOString().slice(0,10)}.txt`;
+      a.click();
+    });
+
+    // ── CSV Export ──
+    document.getElementById('csvBtn').addEventListener('click', () => {
+      if (historyData.length === 0) return;
+      
+      const usedTags = new Set();
+      historyData.forEach(h => Object.keys(h.data).forEach(tag => usedTags.add(tag)));
+      const tagList = Array.from(usedTags);
+      
+      let headers = ['Memo', 'Saved At'];
+      tagList.forEach(tagId => {
+        const label = TAGS.find(t => t.id === tagId)?.label || tagId;
+        headers.push(`${label} (Page 1)`, `${label} (Page 2)`);
+      });
+
+      const rows = historyData.map(h => {
+        let row = [h.memo, h.time];
+        tagList.forEach(tagId => {
+          row.push(h.data[tagId]?.pg1 || '', h.data[tagId]?.pg2 || '');
+        });
+        return row.map(v => `"${(v||'').replace(/"/g,'""')}"`).join(',');
+      });
+
+      const csv = '\uFEFF' + [headers.join(','), ...rows].join('\r\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `tag-extractor-${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+    });
+
+    // Handle Language Toggle Rerendering
+    document.getElementById('lang-select').addEventListener('change', renderHistory);
+
+    // Boot
+    initSettings();
+  </script>
 </body>
 </html>

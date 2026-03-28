@@ -1,43 +1,40 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja" data-theme="auto">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Contextual Text Editor</title>
+<style id="cloudavenue-shared-css">
+  :root {
+    --bg: #f3f5f3; --surface: #ffffff; --surface2: #dae0da; --border: #cad1ca;
+    --text: #3c453c; --text-dim: #758075; --accent: #78909c; --accent-dim: #b0bec5;
+    --primary: #81a18b; --primary-hover: #6d8a77;
+    --sans-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --mono-font: 'JetBrains Mono', 'SF Mono', monospace;
+    
+    --green: #81a18b; --green-dim: #cfdfd5; --green-text: #3e5e49;
+    --orange: #d19a7e; --orange-dim: #eedbd0; --orange-text: #7a4a31;
+    --red: #c98a8a; --red-dim: #eddede; --red-text: #6e3a3a;
+    --cyan: #88adb3; --cyan-dim: #d1e0e3; --cyan-text: #2b5a61;
+  }
+  [data-theme="dark"] {
+    --bg: #1e2220; --surface: #262b28; --surface2: #303632; --border: #424a44;
+    --text: #e6e9e6; --text-dim: #a0afa4; --accent: #90a4ae; --accent-dim: #607d8b;
+    --primary: #6d8a77; --primary-hover: #81a18b;
+    
+    --green-dim: #2b3d31; --green-text: #cfdfd5;
+    --orange-dim: #4a2e1d; --orange-text: #eedbd0;
+    --red-dim: #3a1c1c; --red-text: #eddede;
+    --cyan-dim: #2b5a61; --cyan-text: #d1e0e3;
+  }
+  html[lang="ja"] [lang="en"] { display: none !important; }
+  html[lang="en"] [lang="ja"] { display: none !important; }
+  .nav-right { display: flex; align-items: center; gap: 10px; margin-left: 20px;}
+  .ctrl-select { font-family: var(--sans-font); font-size: 12px; padding: 4px 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text); cursor: pointer; outline: none; }
+  .ctrl-select:focus { border-color: var(--accent); }
+</style>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap');
-
-  :root {
-    /* Dull/Smoky Color Palette */
-    --bg: #e6e9e6;
-    --surface: #f3f5f3;
-    --surface2: #dae0da;
-    --border: #cad1ca;
-    --text: #3c453c;
-    --text-dim: #758075;
-    
-    --accent: #78909c;
-    --accent-dim: #b0bec5;
-    
-    --green: #81a18b;
-    --green-dim: #cfdfd5;
-    --green-text: #3e5e49;
-    
-    --orange: #d19a7e;
-    --orange-dim: #eedbd0;
-    --orange-text: #7a4a31;
-    
-    --red: #c98a8a;
-    --red-dim: #eddede;
-    --red-text: #6e3a3a;
-    
-    --cyan: #88adb3;
-    --cyan-dim: #d1e0e3;
-    --cyan-text: #2b5a61;
-    
-    --mono-font: 'JetBrains Mono', 'SF Mono', monospace;
-    --sans-font: Arial, Helvetica, sans-serif;
-  }
   
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
@@ -78,14 +75,14 @@
     padding: 10px 20px; border-bottom: 1px solid var(--border);
     display: flex; align-items: center; gap: 12px; flex-shrink: 0; background: var(--surface);
   }
-  .header h1 { font-size: 16px; font-weight: 600; color: #1a1a1a; }
+  .header h1 { font-size: 16px; font-weight: 600; color: var(--text); }
   .header .badge { font-size: 11px; padding: 2px 7px; border-radius: 10px; background: var(--accent-dim); color: #fff; font-weight: bold;}
   .edit-counter { font-size: 12px; padding: 3px 10px; border-radius: 12px; background: var(--orange-dim); color: var(--orange-text); font-weight: bold;}
   .edit-counter.zero { background: var(--bg); color: var(--text-dim); }
 
   /* ── Drop Overlay & Setup ── */
   .drop-overlay {
-    position: fixed; inset: 0; background: rgba(230, 233, 230, 0.98);
+    position: fixed; inset: 0; background: var(--bg);
     display: flex; align-items: center; justify-content: flex-start;
     z-index: 1000; flex-direction: column; gap: 24px; overflow-y: auto; padding: 40px;
     padding-top: 12vh;
@@ -104,7 +101,7 @@
     cursor: pointer; transition: all 0.2s; background: var(--surface); padding: 15px;
     position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.03);
   }
-  .drop-zone:hover, .drop-zone.dragover { border-color: var(--accent); background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.05);}
+  .drop-zone:hover, .drop-zone.dragover { border-color: var(--accent); background: var(--surface2); box-shadow: 0 4px 10px rgba(0,0,0,0.05);}
   .drop-zone.loaded { border-color: var(--green); border-style: solid; cursor: default; }
   .drop-zone.optional { border-color: var(--border); }
   .drop-zone.optional .label { color: var(--text-dim); }
@@ -115,7 +112,7 @@
   
   .clear-file-btn {
     position: absolute; top: -10px; right: -10px;
-    background: #fff; color: var(--red); border: 1px solid var(--border); border-radius: 50%; 
+    background: var(--surface); color: var(--red); border: 1px solid var(--border); border-radius: 50%; 
     width: 26px; height: 26px; font-size: 12px; cursor: pointer; display: none;
     align-items: center; justify-content: center; padding: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   }
@@ -132,7 +129,7 @@
   .config-row { display: flex; align-items: center; justify-content: space-between; font-size: 13px; gap: 15px;}
   .config-row label { font-weight: bold; color: var(--text-dim); }
   .config-row select { 
-    font-family: var(--sans-font); font-size: 13px; padding: 8px; background: #fff; 
+    font-family: var(--sans-font); font-size: 13px; padding: 8px; background: var(--surface); 
     color: var(--text); border: 1px solid var(--border); border-radius: 6px; width: 60%;
   }
   #startMatchBtn {
@@ -150,27 +147,33 @@
   }
   .base-url-row input {
     flex: 1; font-family: var(--sans-font); font-size: 12px; padding: 5px 10px;
-    border: 1px solid var(--border); border-radius: 6px; background: #fff; color: var(--text); max-width: 400px;
+    border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text); max-width: 400px;
   }
   .base-url-row input:focus { outline: none; border-color: var(--accent); }
 
   .main-layout { display: flex; flex: 1; overflow: hidden; }
 
-  .preview-pane { flex: 1; position: relative; border-right: 1px solid var(--border); background: #f0f0f0; }
-  .preview-pane iframe { width: 100%; height: 100%; border: none; }
+  .preview-pane { 
+    width: 50vw; min-width: 300px;
+    position: relative; background: #ffffff; flex-shrink: 0;
+  }
+  .preview-pane iframe { width: 100%; height: 100%; border: none; pointer-events: auto; }
   .preview-placeholder { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-dim); font-size: 14px; background: var(--surface); }
 
-  .side-panel { width: 560px; display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden; background: var(--surface);}
+  .splitter { width: 6px; cursor: col-resize; background: var(--surface2); border-left: 1px solid var(--border); border-right: 1px solid var(--border); transition: background 0.2s; z-index: 10; flex-shrink: 0; }
+  .splitter:hover, .splitter.dragging { background: var(--accent); }
+
+  .side-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--surface); min-width: 380px; }
 
   .panel-controls { padding: 10px 15px; border-bottom: 1px solid var(--border); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; flex-shrink: 0; background: var(--surface2); }
   .search-box {
     font-family: var(--sans-font); font-size: 12px; padding: 6px 10px; border: 1px solid var(--border); 
-    border-radius: 6px; background: #fff; color: var(--text); width: 150px;
+    border-radius: 6px; background: var(--surface); color: var(--text); width: 150px;
   }
   .search-box:focus { outline: none; border-color: var(--accent); }
 
   .filter-group { display: flex; gap: 3px; }
-  .filter-btn { font-family: var(--sans-font); font-size: 11px; padding: 4px 9px; border: 1px solid var(--border); border-radius: 12px; background: #fff; color: var(--text-dim); cursor: pointer; transition: all 0.1s;}
+  .filter-btn { font-family: var(--sans-font); font-size: 11px; padding: 4px 9px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--text-dim); cursor: pointer; transition: all 0.1s;}
   .filter-btn:hover { border-color: var(--accent); color: var(--accent);}
   .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: bold;}
 
@@ -182,8 +185,8 @@
 
   .panel-list { flex: 1; overflow-y: auto; background: var(--surface);}
   .panel-row { padding: 14px 15px; border-bottom: 1px solid var(--border); transition: background 0.1s; }
-  .panel-row:hover { background: rgba(255,255,255,0.5); }
-  .panel-row.active { background: #fff; box-shadow: inset 4px 0 0 var(--accent); }
+  .panel-row:hover { background: rgba(120,144,156,0.1); }
+  .panel-row.active { background: var(--surface); box-shadow: inset 4px 0 0 var(--accent); }
   .panel-row.modified { border-left: 4px solid var(--orange); }
 
   /* Row Top (Source) */
@@ -197,18 +200,18 @@
     padding: 6px 10px; border-radius: 6px; border: 1px solid transparent; min-height: 28px;
     font-family: var(--mono-font); line-height: 1.4; background: rgba(0,0,0,0.02); transition: all 0.1s;
   }
-  .pr-trans-display:hover { border-color: var(--border); background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.05);}
+  .pr-trans-display:hover { border-color: var(--border); background: var(--surface); box-shadow: 0 1px 3px rgba(0,0,0,0.05);}
   .pr-trans-display.empty { color: var(--red); font-style: italic; background: var(--red-dim); border-color: #e6c8c8;}
   .pr-trans-display.changed { color: var(--orange-text); background: var(--orange-dim); border-color: #e6cfc3;}
 
   /* Edit Area (Opened state) */
-  .edit-area { margin: 10px 0 6px 38px; display: none; background: #fff; padding: 12px; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.05);}
+  .edit-area { margin: 10px 0 6px 38px; display: none; background: var(--surface2); padding: 12px; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.05);}
   .edit-area.visible { display: block; }
   
   /* Input Area (Row 1) */
   .edit-area textarea {
     width: 100%; font-family: var(--mono-font); font-size: 12px; padding: 10px; border: 1px solid var(--accent-dim); 
-    border-radius: 6px; background: #fff; color: var(--text); resize: vertical; min-height: 70px; line-height: 1.5;
+    border-radius: 6px; background: var(--surface); color: var(--text); resize: vertical; min-height: 70px; line-height: 1.5;
   }
   .edit-area textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(120, 144, 156, 0.2); }
   .edit-actions { display: flex; gap: 8px; margin-top: 8px; align-items: center; flex-wrap: wrap; }
@@ -223,12 +226,12 @@
     position: relative; overflow: hidden;
   }
   .suggestion-card:hover {
-    border-color: var(--accent); background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    border-color: var(--accent); background: var(--surface2); box-shadow: 0 2px 6px rgba(0,0,0,0.05);
   }
   .suggestion-card::after {
     content: "↵ Click to insert"; position: absolute; right: 10px; top: 10px;
     font-size: 10px; color: var(--accent); font-family: var(--sans-font);
-    opacity: 0; transition: opacity 0.2s; font-weight: bold; background: #fff; padding-left: 5px;
+    opacity: 0; transition: opacity 0.2s; font-weight: bold; background: var(--surface2); padding-left: 5px;
   }
   .suggestion-card:hover::after { opacity: 1; }
   
@@ -261,13 +264,13 @@
   .ext-link-btn:hover { background: var(--surface2); color: var(--text); border-color: var(--accent-dim);}
   .tag-hint { font-size: 10px; color: var(--text-dim); margin-left: auto; font-style: italic;}
   
-  .toolbar { padding: 10px 15px; border-top: 1px solid var(--border); display: flex; gap: 8px; flex-shrink: 0; align-items: center; flex-wrap: wrap; background: var(--surface);}
+  .toolbar { padding: 10px 15px; border-top: 1px solid var(--border); display: flex; gap: 8px; flex-shrink: 0; align-items: center; flex-wrap: wrap; background: var(--surface2);}
   button.ui-btn {
     font-family: var(--sans-font); font-size: 12px; padding: 6px 15px; border: 1px solid var(--border); 
-    border-radius: 6px; background: #fff; color: var(--text); cursor: pointer; transition: all 0.1s; font-weight: bold;
+    border-radius: 6px; background: var(--surface); color: var(--text); cursor: pointer; transition: all 0.1s; font-weight: bold;
     box-shadow: 0 1px 2px rgba(0,0,0,0.05); display: inline-flex; align-items: center; justify-content: center;
   }
-  button.ui-btn:hover { background: var(--bg); border-color: var(--accent-dim); }
+  button.ui-btn:hover { background: var(--surface2); border-color: var(--accent-dim); }
   button.ui-btn:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
   button.ui-btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
   button.ui-btn.primary:hover { background: #607d8b; opacity: 1; }
@@ -279,12 +282,12 @@
 
 <div class="top-nav">
   <div class="nav-left">
-    <a href="https://apps.cloudavenue.jp/" class="back-link">
+    <a href="/" class="back-link">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-      Back
+      <span lang="ja">トップに戻る</span><span lang="en">Back to Top</span>
     </a>
     <button class="start-over-btn" id="startOverBtn" title="Reset everything and start over">
-      ⟲ Start Over
+      ⟲ <span lang="ja">最初からやり直す</span><span lang="en">Start Over</span>
     </button>
   </div>
   
@@ -293,6 +296,21 @@
     <div class="progress-container">
       <div class="progress-bar" id="progressBar"></div>
     </div>
+  </div>
+  
+  <div class="nav-right">
+    <select id="theme-select" class="ctrl-select">
+      <option value="auto" lang="ja">テーマ: 自動</option>
+      <option value="auto" lang="en">Theme: Auto</option>
+      <option value="light" lang="ja">ライト</option>
+      <option value="light" lang="en">Light</option>
+      <option value="dark" lang="ja">ダーク</option>
+      <option value="dark" lang="en">Dark</option>
+    </select>
+    <select id="lang-select" class="ctrl-select">
+      <option value="ja">日本語</option>
+      <option value="en">English</option>
+    </select>
   </div>
 </div>
 
@@ -304,28 +322,40 @@
 <div class="drop-overlay" id="dropOverlay">
   <div class="drop-title-area">
     <div class="drop-overlay-title">Contextual Text Editor</div>
-    <div class="drop-hint">Load your Text Data (CSV) and Source HTML to begin matching.</div>
+    <div class="drop-hint">
+      <span lang="ja">翻訳元/先のテキストデータ(CSV)と、レイアウト元となるHTMLを読み込んでください</span>
+      <span lang="en">Load your Text Data (CSV) and Source HTML to begin matching.</span>
+    </div>
   </div>
   
   <div class="drop-boxes">
     <div class="drop-zone" id="csvZone">
       <button class="clear-file-btn" onclick="clearFile('csv', event)" title="Clear file">✕</button>
       <div class="icon">📄</div>
-      <div class="label">Text Data (CSV)<br>(Source & Target texts)</div>
+      <div class="label">
+        <span lang="ja">テキストデータ (CSV)<br>(原文と訳文の列を含む)</span>
+        <span lang="en">Text Data (CSV)<br>(Source & Target texts)</span>
+      </div>
       <div class="filename" id="csvName"></div>
       <input type="file" id="csvInput" accept=".csv">
     </div>
     <div class="drop-zone" id="htmlZone">
       <button class="clear-file-btn" onclick="clearFile('html', event)" title="Clear file">✕</button>
       <div class="icon">🖥️</div>
-      <div class="label">Source HTML<br>(Original layout page)</div>
+      <div class="label">
+        <span lang="ja">レイアウト用 HTML<br>(原文を含むページ)</span>
+        <span lang="en">Source HTML<br>(Original layout page)</span>
+      </div>
       <div class="filename" id="htmlName"></div>
       <input type="file" id="htmlInput" accept=".html,.htm">
     </div>
     <div class="drop-zone optional" id="enHtmlZone">
       <button class="clear-file-btn" onclick="clearFile('enHtml', event)" title="Clear file">✕</button>
       <div class="icon">📑</div>
-      <div class="label">Reference HTML<br>(Optional target page)</div>
+      <div class="label">
+        <span lang="ja">参考用 HTML<br>(任意: 過去の翻訳先ページなど)</span>
+        <span lang="en">Reference HTML<br>(Optional target page)</span>
+      </div>
       <div class="filename" id="enHtmlName"></div>
       <input type="file" id="enHtmlInput" accept=".html,.htm">
     </div>
@@ -362,14 +392,18 @@
     <div class="preview-placeholder" id="previewPlaceholder">Preview will appear here after starting session.</div>
   </div>
 
-  <div class="side-panel">
+  <div class="splitter" id="splitter"></div>
+
+  <div class="side-panel" id="sidePanel">
     <div class="panel-controls">
       <input type="text" class="search-box" id="searchBox" placeholder="Search text...">
-      <div class="filter-group">
+      <div class="filter-group" style="flex-wrap: wrap; gap: 5px;">
         <button class="filter-btn active" data-filter="all">All</button>
         <button class="filter-btn" data-filter="untranslated">To Do</button>
         <button class="filter-btn" data-filter="modified">Edited</button>
-        <button class="filter-btn" data-filter="has_ref">Ref Avail</button>
+        <button class="filter-btn" data-filter="csv_ref">CSV Ref</button>
+        <button class="filter-btn" data-filter="html_ref">HTML Ref</button>
+        <button class="filter-btn" data-filter="both_ref">Both Ref</button>
       </div>
     </div>
     <div class="panel-stats" id="statsBar">
@@ -381,7 +415,7 @@
     <div class="toolbar">
       <button class="ui-btn primary" id="exportBtn">Export CSV</button>
       <button class="ui-btn success" id="exportHtmlBtn">Export HTML</button>
-      <button class="ui-btn" id="toggleBadgesBtn" style="margin-left:auto;">Toggle Badges</button>
+      <button class="ui-btn" id="toggleBadgesBtn" style="margin-left:auto;"><span lang="ja">バッジ表示/非表示</span><span lang="en">Toggle Badges</span></button>
     </div>
   </div>
 </div>
@@ -663,42 +697,25 @@ function processHTMLDocument(htmlString, forPreview) {
       const taggedHtml = edit ? edit.tagged : '';
 
       if (forPreview) {
-        let badgeColor = varColor('--red'); 
-        let bgColor = varColor('--red-dim');
-        let borderColor = '#e6c8c8';
-        let textColor = varColor('--red-text');
-
+        let typeCls = 'untrans';
         if (edit) {
-          if (edit._origin === 'csv') {
-            badgeColor = varColor('--green');
-            bgColor = varColor('--green-dim');
-            borderColor = '#cfdfd5';
-            textColor = varColor('--green-text');
-          } else if (edit._origin === 'ref') {
-            badgeColor = varColor('--cyan');
-            bgColor = varColor('--cyan-dim');
-            borderColor = '#b0c9cd';
-            textColor = varColor('--cyan-text');
-          } else { // manual (EDITED)
-            badgeColor = varColor('--orange');
-            bgColor = varColor('--orange-dim');
-            borderColor = '#e6cfc3';
-            textColor = varColor('--orange-text');
-          }
+          if (edit._origin === 'csv') typeCls = 'csv';
+          else if (edit._origin === 'ref') typeCls = 'ref';
+          else typeCls = 'manual';
         }
 
         const badge = doc.createElement('span');
-        badge.className = 'csv-match-badge'; badge.dataset.csvIndex = mr.csvIndex;
+        badge.className = `csv-match-badge type-${typeCls}`; 
+        badge.dataset.csvIndex = mr.csvIndex;
         badge.setAttribute('id', 'csv-badge-'+mr.csvIndex);
-        badge.style.cssText = `display:inline-block;font-family:monospace;font-size:10px;font-weight:700;background:${badgeColor};color:#fff;padding:1px 4px;border-radius:3px;margin-left:2px;cursor:pointer;vertical-align:middle;line-height:1;position:relative;z-index:9999;white-space:nowrap;`;
         badge.textContent = '#'+mr.csvIndex;
         
         const parent = node.parentNode;
         if (parent) {
           parent.insertBefore(badge, node.nextSibling);
           if (edit) {
-            const ts = doc.createElement('span'); ts.className = 'csv-trans-preview';
-            ts.style.cssText = `display:inline-block;font-size:11px;color:${textColor};background:${bgColor};padding:2px 8px;border-radius:6px;margin-left:4px;font-family:sans-serif;max-width:360px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;border:1px solid ${borderColor};font-weight:bold;`;
+            const ts = doc.createElement('span'); 
+            ts.className = `csv-trans-preview type-${typeCls}`;
             ts.textContent = transText.substring(0,60) || '(Empty)';
             parent.insertBefore(ts, badge.nextSibling);
           }
@@ -720,8 +737,72 @@ function processHTMLDocument(htmlString, forPreview) {
 
   if (forPreview) {
     doc.querySelectorAll('script').forEach(s => s.remove());
+    
+    const darkStyle = doc.createElement('style');
+    darkStyle.textContent = `
+      html { background-color: #ffffff; }
+      :root {
+        --badge-bg-untrans: #c98a8a; --badge-fg-untrans: #ffffff;
+        --preview-bg-untrans: #eddede; --preview-fg-untrans: #6e3a3a; --preview-border-untrans: #e6c8c8;
+        
+        --badge-bg-csv: #81a18b; --badge-fg-csv: #ffffff;
+        --preview-bg-csv: #cfdfd5; --preview-fg-csv: #3e5e49; --preview-border-csv: #c0d1c6;
+        
+        --badge-bg-ref: #88adb3; --badge-fg-ref: #ffffff;
+        --preview-bg-ref: #d1e0e3; --preview-fg-ref: #2b5a61; --preview-border-ref: #b0c9cd;
+        
+        --badge-bg-manual: #d19a7e; --badge-fg-manual: #ffffff;
+        --preview-bg-manual: #eedbd0; --preview-fg-manual: #7a4a31; --preview-border-manual: #e6cfc3;
+      }
+      html.is-preview-dark {
+        --badge-bg-untrans: #a65c5c; --badge-fg-untrans: #ffffff;
+        --preview-bg-untrans: #3a1c1c; --preview-fg-untrans: #eddede; --preview-border-untrans: #a65c5c;
+        
+        --badge-bg-csv: #4a6a56; --badge-fg-csv: #ffffff;
+        --preview-bg-csv: #2b3d31; --preview-fg-csv: #cfdfd5; --preview-border-csv: #4a6a56;
+        
+        --badge-bg-ref: #4e777d; --badge-fg-ref: #ffffff;
+        --preview-bg-ref: #2b5a61; --preview-fg-ref: #d1e0e3; --preview-border-ref: #4e777d;
+        
+        --badge-bg-manual: #a16443; --badge-fg-manual: #ffffff;
+        --preview-bg-manual: #4a2e1d; --preview-fg-manual: #eedbd0; --preview-border-manual: #a16443;
+      }
+
+      .csv-match-badge {
+        display: inline-block; font-family: monospace; font-size: 10px; font-weight: 700;
+        padding: 1px 4px; border-radius: 3px; margin-left: 2px; cursor: pointer;
+        vertical-align: middle; line-height: 1; position: relative; z-index: 9999;
+        white-space: nowrap; box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      }
+      .csv-trans-preview {
+        display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 6px; margin-left: 4px;
+        font-family: sans-serif; max-width: 360px; overflow: hidden; text-overflow: ellipsis;
+        white-space: nowrap; vertical-align: middle; border: 1px solid transparent; font-weight: bold;
+      }
+
+      .csv-match-badge.type-untrans { background: var(--badge-bg-untrans); color: var(--badge-fg-untrans); }
+      .csv-trans-preview.type-untrans { background: var(--preview-bg-untrans); color: var(--preview-fg-untrans); border-color: var(--preview-border-untrans); }
+      
+      .csv-match-badge.type-csv { background: var(--badge-bg-csv); color: var(--badge-fg-csv); }
+      .csv-trans-preview.type-csv { background: var(--preview-bg-csv); color: var(--preview-fg-csv); border-color: var(--preview-border-csv); }
+      
+      .csv-match-badge.type-ref { background: var(--badge-bg-ref); color: var(--badge-fg-ref); }
+      .csv-trans-preview.type-ref { background: var(--preview-bg-ref); color: var(--preview-fg-ref); border-color: var(--preview-border-ref); }
+      
+      .csv-match-badge.type-manual { background: var(--badge-bg-manual); color: var(--badge-fg-manual); }
+      .csv-trans-preview.type-manual { background: var(--preview-bg-manual); color: var(--preview-fg-manual); border-color: var(--preview-border-manual); }
+
+      html.is-preview-dark { filter: invert(0.88) hue-rotate(180deg); background: #fff; }
+      html.is-preview-dark img, html.is-preview-dark video, html.is-preview-dark iframe, 
+      html.is-preview-dark .csv-match-badge, html.is-preview-dark .csv-trans-preview,
+      html.is-preview-dark [style*="background-image"] {
+        filter: invert(1) hue-rotate(180deg);
+      }
+    `;
+    doc.head.appendChild(darkStyle);
+
     const script = doc.createElement('script');
-    script.textContent = `document.addEventListener('click',function(e){if(e.target.classList.contains('csv-match-badge')){e.preventDefault();e.stopPropagation();window.parent.postMessage({type:'badge-click',csvIndex:parseInt(e.target.dataset.csvIndex)},'*');return;}var l=e.target.closest('a,button[onclick],[role="link"]');if(l){e.preventDefault();e.stopPropagation();}},true);window.addEventListener('message',function(e){if(e.data.type==='scroll-to-badge'){var b=document.getElementById('csv-badge-'+e.data.csvIndex);if(b){b.scrollIntoView({behavior:'smooth',block:'center'});b.style.outline='3px solid #78909c';b.style.outlineOffset='2px';setTimeout(function(){b.style.outline='';},3000);}}if(e.data.type==='toggle-badges'){document.querySelectorAll('.csv-match-badge,.csv-trans-preview').forEach(function(b){b.style.display=e.data.visible?'inline-block':'none';});}});`;
+    script.textContent = `document.addEventListener('click',function(e){if(e.target.classList.contains('csv-match-badge')){e.preventDefault();e.stopPropagation();window.parent.postMessage({type:'badge-click',csvIndex:parseInt(e.target.dataset.csvIndex)},'*');return;}var l=e.target.closest('a,button[onclick],[role="link"]');if(l){e.preventDefault();e.stopPropagation();}},true);window.addEventListener('message',function(e){if(e.data.type==='scroll-to-badge'){var b=document.getElementById('csv-badge-'+e.data.csvIndex);if(b){b.scrollIntoView({behavior:'smooth',block:'center'});b.style.outline='3px solid #78909c';b.style.outlineOffset='2px';setTimeout(function(){b.style.outline='';},3000);}}if(e.data.type==='toggle-badges'){document.querySelectorAll('.csv-match-badge,.csv-trans-preview').forEach(function(b){b.style.display=e.data.visible?'inline-block':'none';});}if(e.data.type==='theme'){if(e.data.isDark) document.documentElement.classList.add('is-preview-dark'); else document.documentElement.classList.remove('is-preview-dark');}});`;
     doc.body.appendChild(script);
     if (baseUrl) {
       const base = doc.createElement('base');
@@ -745,6 +826,10 @@ function renderPreview() {
   let iframe = pane.querySelector('iframe');
   if (!iframe){iframe=document.createElement('iframe');iframe.id='previewFrame';iframe.sandbox='allow-scripts allow-same-origin';pane.appendChild(iframe);}
   iframe.src = URL.createObjectURL(blob);
+  iframe.onload = () => {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    iframe.contentWindow.postMessage({ type: 'theme', isDark }, '*');
+  };
 }
 
 // ===== UI Panel =====
@@ -780,7 +865,9 @@ function renderPanel() {
   let filtered = matchResults;
   if (currentFilter==='untranslated') filtered=filtered.filter(r=>edits[r.csvIndex]===undefined);
   else if (currentFilter==='modified') filtered=filtered.filter(r=>edits[r.csvIndex]!==undefined && edits[r.csvIndex]._origin === 'manual');
-  else if (currentFilter==='has_ref') filtered=filtered.filter(r=>enTextMap[r.csvIndex]!==undefined);
+  else if (currentFilter==='csv_ref') filtered=filtered.filter(r=>r.allCsvTrans && r.allCsvTrans.length > 0);
+  else if (currentFilter==='html_ref') filtered=filtered.filter(r=>enTextMap[r.csvIndex]!==undefined);
+  else if (currentFilter==='both_ref') filtered=filtered.filter(r=>r.allCsvTrans && r.allCsvTrans.length > 0 && enTextMap[r.csvIndex]!==undefined);
 
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
@@ -1123,7 +1210,90 @@ window.addEventListener('message',e=>{
     setTimeout(()=>openEdit(idx),100);
   }
 });
+
+// Sync dark mode to iframe
+const themeObserver = new MutationObserver(() => {
+  const frame = document.getElementById('previewFrame');
+  if (frame && frame.contentWindow) {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    frame.contentWindow.postMessage({ type: 'theme', isDark }, '*');
+  }
+});
+themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+// UI Resizable Splitter
+const splitter = document.getElementById('splitter');
+const previewPane = document.getElementById('previewPane');
+let isSplitterDragging = false;
+splitter.addEventListener('mousedown', () => { 
+  isSplitterDragging = true; 
+  splitter.classList.add('dragging'); 
+  document.body.style.cursor='col-resize'; 
+  const fr = document.getElementById('previewFrame');
+  if(fr) fr.style.pointerEvents='none'; 
+});
+window.addEventListener('mousemove', e => { 
+  if(isSplitterDragging) previewPane.style.width = e.clientX + 'px'; 
+});
+window.addEventListener('mouseup', () => { 
+  if(!isSplitterDragging) return;
+  isSplitterDragging = false; 
+  splitter.classList.remove('dragging'); 
+  document.body.style.cursor=''; 
+  const fr = document.getElementById('previewFrame');
+  if(fr) fr.style.pointerEvents='auto'; 
+});
+
 window.addEventListener('beforeunload',e=>{if(Object.keys(edits).filter(k=>!edits[k]._auto).length>0){e.preventDefault();e.returnValue='';}});
+</script>
+<!-- Shared Script Template -->
+<script id="cloudavenue-shared-script">
+  (function() {
+    const getStorage = (key, defaultVal) => localStorage.getItem(key) || defaultVal;
+    const setStorage = (key, val) => localStorage.setItem(key, val);
+
+    const themeSelect = document.getElementById('theme-select');
+    const applyTheme = (theme) => {
+      if (theme === 'auto') {
+        const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+      } else {
+        document.documentElement.setAttribute('data-theme', theme);
+      }
+    };
+    const initTheme = () => {
+      const saved = getStorage('cloudavenue-theme', 'auto');
+      if (themeSelect) themeSelect.value = saved;
+      applyTheme(saved);
+    };
+    if (themeSelect) {
+      themeSelect.addEventListener('change', (e) => {
+        setStorage('cloudavenue-theme', e.target.value);
+        applyTheme(e.target.value);
+      });
+    }
+
+    const langSelect = document.getElementById('lang-select');
+    const applyLang = (lang) => { document.documentElement.setAttribute('lang', lang); };
+    const initLang = () => {
+      const defaultLang = (navigator.language || navigator.userLanguage).startsWith('ja') ? 'ja' : 'en';
+      const saved = getStorage('cloudavenue-lang', defaultLang);
+      if (langSelect) langSelect.value = saved;
+      applyLang(saved);
+    };
+    if (langSelect) {
+      langSelect.addEventListener('change', (e) => {
+        setStorage('cloudavenue-lang', e.target.value);
+        applyLang(e.target.value);
+      });
+    }
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+      if (getStorage('cloudavenue-theme', 'auto') === 'auto') applyTheme('auto');
+    });
+
+    initTheme(); initLang();
+  })();
 </script>
 </body>
 </html>

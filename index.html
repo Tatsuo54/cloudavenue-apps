@@ -1,27 +1,134 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" data-theme="auto">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cloud Avenue｜Web Apps</title>
-  <style>
-    * {
-      box-sizing: border-box;
+  <style id="cloudavenue-shared-css">
+    /* --- Base Styles & Theme --- */
+    :root {
+      /* Dull / Smoky Color Palette (Light Mode Default) */
+      --bg: #f3f5f3;
+      --surface: #ffffff;
+      --surface2: #dae0da;
+      --border: #cad1ca;
+      --text: #3c453c;
+      --text-dim: #758075;
+      --accent: #78909c;
+      --accent-dim: #b0bec5;
+      --primary: #81a18b;
+      --primary-hover: #6d8a77;
+      --sans-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      --mono-font: 'JetBrains Mono', 'SF Mono', monospace;
     }
+
+    [data-theme="dark"] {
+      --bg: #1e2220;
+      --surface: #262b28;
+      --surface2: #303632;
+      --border: #424a44;
+      --text: #e6e9e6;
+      --text-dim: #a0afa4;
+      --accent: #90a4ae;
+      --accent-dim: #607d8b;
+      --primary: #6d8a77;
+      --primary-hover: #81a18b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: var(--sans-font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* --- Language Toggle CSS --- */
+    html[lang="ja"] [lang="en"] { display: none !important; }
+    html[lang="en"] [lang="ja"] { display: none !important; }
+
+    /* --- Layout & Utilities --- */
+    .container {
+      width: 100%;
       max-width: 800px;
       margin: 0 auto;
-      padding: 40px 20px;
-      background: #f5f5f5;
-      color: #333;
+      padding: 0 20px 40px;
+      flex: 1;
     }
-    h1 {
+    a { color: var(--accent); text-decoration: none; transition: color 0.2s; }
+    a:hover { color: var(--text); }
+
+    /* --- Top Nav (Header) --- */
+    .top-nav {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      padding: 15px 20px;
+      margin-bottom: 20px;
+    }
+    .nav-right { display: flex; align-items: center; gap: 10px; }
+    .nav-left { display: flex; align-items: center; gap: 15px; margin-right: auto; }
+    .back-link {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .back-link:hover { color: var(--text); }
+
+    /* --- Toggles (Select) --- */
+    .ctrl-select {
+      font-family: var(--sans-font);
+      font-size: 12px;
+      padding: 4px 8px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      outline: none;
+    }
+    .ctrl-select:focus { border-color: var(--accent); }
+
+    /* --- Form Controls & Buttons --- */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: var(--sans-font);
+    }
+    .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+
+    /* --- Footer --- */
+    .main-footer {
+      text-align: center;
+      padding: 30px 20px;
+      margin-top: auto;
+      font-size: 14px;
+      color: var(--text-dim);
+    }
+
+    /* --- Page Specific Styles --- */
+    .hero-title {
       font-size: 28px;
       margin-bottom: 10px;
+      color: var(--text);
     }
     .subtitle {
-      color: #666;
+      color: var(--text-dim);
       margin-bottom: 40px;
     }
     .app-list {
@@ -30,74 +137,173 @@
       gap: 15px;
     }
     .app-card {
-      background: #fff;
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: 12px;
       padding: 20px 25px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
       text-decoration: none;
       color: inherit;
       transition: all 0.2s;
     }
     .app-card:hover {
       transform: translateY(-2px);
-      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+      border-color: var(--accent-dim);
     }
     .app-name {
       font-weight: bold;
       font-size: 18px;
       margin-bottom: 6px;
+      color: var(--text);
     }
     .app-desc {
-      color: #666;
+      color: var(--text-dim);
       font-size: 14px;
-    }
-    footer {
-      margin-top: 60px;
-      text-align: center;
-    }
-    footer a {
-      color: #666;
-      font-size: 15px;
-      text-decoration: none;
-    }
-    footer a:hover {
-      color: #999;
     }
   </style>
 </head>
 <body>
-  <h1>Cloud Avenue｜Web Apps</h1>
-  <p class="subtitle">ちょっとしたお役立ちアプリたち</p>
-  
-  <div class="app-list">
-    <a href="/image-cropper/" class="app-card">
-      <div class="app-name">画像一括トリミングツール</div>
-      <div class="app-desc">複数画像の上下左右を一括でトリミング。ピクセル・パーセント指定対応。</div>
-    </a>
-    
-    <a href="/webp-converter/" class="app-card">
-      <div class="app-name">画像一括WebP変換ツール</div>
-      <div class="app-desc">複数画像をWebP形式に一括変換。品質調整と圧縮率のプレビュー付き。</div>
-    </a>
 
-    <a href="/cross-check/" class="app-card">
-      <div class="app-name">クロス検索ツール</div>
-      <div class="app-desc">ひとつの情報を複数ソースから検索するための簡易ツール。</div>
-    </a>
+  <!-- Shared Navigation Template -->
+  <nav class="top-nav">
+    <div class="nav-right">
+      <select id="theme-select" class="ctrl-select">
+        <option value="auto" lang="ja">テーマ: 自動</option>
+        <option value="auto" lang="en">Theme: Auto</option>
+        <option value="light" lang="ja">ライト</option>
+        <option value="light" lang="en">Light</option>
+        <option value="dark" lang="ja">ダーク</option>
+        <option value="dark" lang="en">Dark</option>
+      </select>
+      <select id="lang-select" class="ctrl-select">
+        <option value="ja">日本語</option>
+        <option value="en">English</option>
+      </select>
+    </div>
+  </nav>
 
-    <a href="/html-tag-extractor/" class="app-card">
-      <div class="app-name">HTMLタグ抽出ツール</div>
-      <div class="app-desc">HTMLソースからtitleやdescription、OGPなどの各種メタタグを抽出し、CSV・TXTで書き出します。</div>
-    </a>
+  <div class="container">
+    <h1 class="hero-title">Cloud Avenue｜Web Apps</h1>
+    <p class="subtitle">
+      <span lang="ja">ちょっとしたお役立ちアプリたち</span>
+      <span lang="en">A collection of handy utility web apps</span>
+    </p>
 
-    <a href="/contextual-text-editor/" class="app-card">
-      <div class="app-name">Contextual Text Editor</div>
-      <div class="app-desc">実際のWebページのレイアウトを確認しながら、テキストデータ（CSV）の編集や文言の置換ができるツール。</div>
-    </a>
+    <div class="app-list">
+      <a href="/image-cropper/" class="app-card">
+        <div class="app-name">
+          <span lang="ja">画像一括トリミングツール</span>
+          <span lang="en">Batch Image Cropper</span>
+        </div>
+        <div class="app-desc">
+          <span lang="ja">複数画像の上下左右を一括でトリミング。ピクセル・パーセント指定対応。</span>
+          <span lang="en">Batch crop multiple images from all sides. Supports pixel and percentage dimensions.</span>
+        </div>
+      </a>
+      
+      <a href="/webp-converter/" class="app-card">
+        <div class="app-name">
+          <span lang="ja">画像一括WebP変換ツール</span>
+          <span lang="en">Batch WebP Converter</span>
+        </div>
+        <div class="app-desc">
+          <span lang="ja">複数画像をWebP形式に一括変換。品質調整と圧縮率のプレビュー付き。</span>
+          <span lang="en">Batch convert multiple images to WebP format. Includes quality adjustment and compression preview.</span>
+        </div>
+      </a>
+
+      <a href="/cross-check/" class="app-card">
+        <div class="app-name">
+          <span lang="ja">クロス検索ツール</span>
+          <span lang="en">Cross Search Tool</span>
+        </div>
+        <div class="app-desc">
+          <span lang="ja">ひとつの情報を複数ソースから検索するための簡易ツール。</span>
+          <span lang="en">A simple tool to search for the same query across multiple services.</span>
+        </div>
+      </a>
+
+      <a href="/html-tag-extractor/" class="app-card">
+        <div class="app-name">
+          <span lang="ja">HTMLタグ抽出ツール</span>
+          <span lang="en">HTML Tag Extractor</span>
+        </div>
+        <div class="app-desc">
+          <span lang="ja">HTMLソースからtitleやdescription、OGPなどの各種メタタグを抽出し、CSV・TXTで書き出します。</span>
+          <span lang="en">Extract meta tags (title, description, OGP, etc.) from HTML source and export to CSV/TXT.</span>
+        </div>
+      </a>
+
+      <a href="/contextual-text-editor/" class="app-card">
+        <div class="app-name">Contextual Text Editor</div>
+        <div class="app-desc">
+          <span lang="ja">実際のWebページのレイアウトを確認しながら、テキストデータ（CSV）の編集や文言の置換ができるツール。</span>
+          <span lang="en">Edit text data (CSV) and replace wording while checking the actual web page layout.</span>
+        </div>
+      </a>
+    </div>
   </div>
   
-  <footer>
+  <footer class="main-footer">
     <a href="https://cloudavenue.jp" target="_blank">cloudavenue.jp</a>
   </footer>
+
+  <!-- Shared Script Template -->
+  <script id="cloudavenue-shared-script">
+    (function() {
+      const getStorage = (key, defaultVal) => localStorage.getItem(key) || defaultVal;
+      const setStorage = (key, val) => localStorage.setItem(key, val);
+
+      // Theme
+      const themeSelect = document.getElementById('theme-select');
+      const applyTheme = (theme) => {
+        if (theme === 'auto') {
+          const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+        } else {
+          document.documentElement.setAttribute('data-theme', theme);
+        }
+      };
+      const initTheme = () => {
+        const saved = getStorage('cloudavenue-theme', 'auto');
+        if (themeSelect) themeSelect.value = saved;
+        applyTheme(saved);
+      };
+      if (themeSelect) {
+        themeSelect.addEventListener('change', (e) => {
+          setStorage('cloudavenue-theme', e.target.value);
+          applyTheme(e.target.value);
+        });
+      }
+
+      // Language
+      const langSelect = document.getElementById('lang-select');
+      const applyLang = (lang) => {
+        document.documentElement.setAttribute('lang', lang);
+      };
+      const initLang = () => {
+        const defaultLang = (navigator.language || navigator.userLanguage).startsWith('ja') ? 'ja' : 'en';
+        const saved = getStorage('cloudavenue-lang', defaultLang);
+        if (langSelect) langSelect.value = saved;
+        applyLang(saved);
+      };
+      if (langSelect) {
+        langSelect.addEventListener('change', (e) => {
+          setStorage('cloudavenue-lang', e.target.value);
+          applyLang(e.target.value);
+        });
+      }
+
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        if (getStorage('cloudavenue-theme', 'auto') === 'auto') {
+          applyTheme('auto');
+        }
+      });
+
+      initTheme();
+      initLang();
+    })();
+  </script>
 </body>
 </html>
