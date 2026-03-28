@@ -7,246 +7,170 @@
   <style id="cloudavenue-shared-css">
     /* --- Base Styles & Theme --- */
     :root {
-      /* Dull / Smoky Color Palette (Light Mode Default) */
-      --bg: #f3f5f3;
-      --surface: #ffffff;
-      --surface2: #dae0da;
-      --border: #cad1ca;
-      --text: #3c453c;
-      --text-dim: #758075;
-      --accent: #78909c;
-      --accent-dim: #b0bec5;
-      --primary: #81a18b;
-      --primary-hover: #6d8a77;
+      --bg: #f3f5f3; --surface: #ffffff; --surface2: #dae0da;
+      --border: #cad1ca; --text: #3c453c; --text-dim: #758075;
+      --accent: #78909c; --accent-dim: #b0bec5;
+      --primary: #81a18b; --primary-hover: #6d8a77;
+      --danger: #c98a8a; --danger-bg: #faf4f0;
+      --warning-border: #d19a7e; --warning-bg: #faf4f0; --warning-text: #a0522d;
       --sans-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
       --mono-font: 'JetBrains Mono', 'SF Mono', monospace;
     }
-
     [data-theme="dark"] {
-      --bg: #1e2220;
-      --surface: #262b28;
-      --surface2: #303632;
-      --border: #424a44;
-      --text: #e6e9e6;
-      --text-dim: #a0afa4;
-      --accent: #90a4ae;
-      --accent-dim: #607d8b;
-      --primary: #6d8a77;
-      --primary-hover: #81a18b;
+      --bg: #1e2220; --surface: #262b28; --surface2: #303632;
+      --border: #424a44; --text: #e6e9e6; --text-dim: #a0afa4;
+      --accent: #90a4ae; --accent-dim: #607d8b;
+      --primary: #6d8a77; --primary-hover: #81a18b;
+      --danger: #c98a8a; --danger-bg: #3a2211;
+      --warning-border: #ba7e60; --warning-bg: #3a2211; --warning-text: #eedbd0;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: var(--sans-font);
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.5;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* --- Language Toggle CSS --- */
+    body { font-family: var(--sans-font); background: var(--bg); color: var(--text); line-height: 1.5; min-height: 100vh; display: flex; flex-direction: column; }
     html[lang="ja"] [lang="en"] { display: none !important; }
     html[lang="en"] [lang="ja"] { display: none !important; }
 
-    /* --- Layout & Utilities --- */
-    .container {
-      width: 100%;
-      max-width: 600px; /* narrowed for this tool */
-      margin: 0 auto;
-      padding: 0 20px 40px;
-      flex: 1;
-    }
+    /* --- Layout --- */
+    .container { width: 100%; max-width: 640px; margin: 0 auto; padding: 0 20px 40px; flex: 1; }
     a { color: var(--accent); text-decoration: none; transition: color 0.2s; }
     a:hover { color: var(--text); }
-    h1 { font-size: 24px; margin-bottom: 8px; color: var(--text); }
-    .description { color: var(--text-dim); margin-bottom: 32px; font-size: 14px; }
 
-    /* --- Top Nav (Header) --- */
-    .top-nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 15px 20px;
-      margin-bottom: 20px;
-      border-bottom: 1px solid var(--border);
-      background: var(--surface);
-    }
+    /* --- Top Nav --- */
+    .top-nav { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; margin-bottom: 20px; border-bottom: 1px solid var(--border); background: var(--surface); }
     .nav-right { display: flex; align-items: center; gap: 10px; }
     .nav-left { display: flex; align-items: center; gap: 15px; margin-right: auto; }
-    .back-link {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text-dim);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
+    .back-link { font-size: 14px; font-weight: 600; color: var(--text-dim); display: flex; align-items: center; gap: 6px; }
     .back-link:hover { color: var(--text); }
-
-    /* --- Toggles (Select) --- */
-    .ctrl-select {
-      font-family: var(--sans-font);
-      font-size: 12px;
-      padding: 4px 8px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      background: var(--surface);
-      color: var(--text);
-      cursor: pointer;
-      outline: none;
-    }
+    .ctrl-select { font-family: var(--sans-font); font-size: 12px; padding: 4px 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text); cursor: pointer; outline: none; }
     .ctrl-select:focus { border-color: var(--accent); }
 
-    /* --- Form Controls & Buttons --- */
-    .form-group { margin-bottom: 15px; }
-    .form-label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 14px; color: var(--text); }
-    .form-control {
-      width: 100%;
-      padding: 10px 12px;
-      font-size: 14px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      background: var(--surface);
-      color: var(--text);
-      font-family: var(--sans-font);
-    }
-    .form-control:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(120, 144, 156, 0.2); }
+    /* --- Page Toggle --- */
+    .page { display: none; }
+    .page.active { display: block; }
 
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 12px 20px;
-      font-size: 14px;
-      font-weight: 600;
-      border: 1px solid transparent;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-family: var(--sans-font);
-      width: 100%;
-    }
-    .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    /* --- Preset Row --- */
+    .preset-row { display: flex; gap: 8px; align-items: flex-end; margin-bottom: 16px; }
+    .preset-row .select-wrap { flex: 1; }
+    .preset-row .select-wrap label { font-size: 12px; color: var(--text-dim); display: block; margin-bottom: 4px; font-weight: 600; }
+    .preset-select { width: 100%; padding: 8px 10px; font-size: 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text); font-family: var(--sans-font); cursor: pointer; }
+    .preset-settings-btn { padding: 8px 14px; font-size: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; color: var(--text-dim); white-space: nowrap; font-weight: 600; transition: all 0.2s; }
+    .preset-settings-btn:hover { background: var(--surface2); color: var(--text); }
+
+    /* --- Form Controls --- */
+    .form-group { margin-bottom: 12px; }
+    .form-label { display: block; margin-bottom: 4px; font-weight: 600; font-size: 13px; color: var(--text); }
+    .form-control { width: 100%; padding: 10px 12px; font-size: 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text); font-family: var(--sans-font); outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+    .form-control:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(120, 144, 156, 0.2); }
+    .form-control.error { border-color: var(--danger); }
+
+    /* --- Buttons --- */
+    .btn-row { display: flex; gap: 8px; margin-top: 8px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; padding: 10px 18px; font-size: 14px; font-weight: 600; border: 1px solid transparent; border-radius: 6px; cursor: pointer; transition: all 0.2s; font-family: var(--sans-font); }
+    .btn-primary { flex: 1; background: var(--primary); color: #fff; border-color: var(--primary); }
     .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
-    
-    .btn-success { background: var(--primary); color: #fff; border-color: var(--primary); }
-    .btn-success:hover { background: var(--primary-hover); transform: translateY(-1px); }
+    .btn-secondary { padding: 10px 16px; background: var(--surface); color: var(--text-dim); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: var(--surface2); color: var(--text); }
+    .btn-danger-sm { padding: 4px 8px; font-size: 11px; background: transparent; color: var(--danger); border: 1px solid var(--danger); border-radius: 4px; cursor: pointer; font-family: var(--sans-font); transition: all 0.2s; }
+    .btn-danger-sm:hover { background: var(--danger); color: #fff; }
 
-    .btn-danger { padding: 4px 8px; font-size: 11px; background: transparent; color: #c98a8a; border: 1px solid #c98a8a; border-radius: 4px; width: auto;}
-    .btn-danger:hover { background: #c98a8a; color: #fff; }
+    /* --- Results --- */
+    .results { display: none; margin-top: 24px; }
+    .results.show { display: block; }
+    .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .results-header h2 { font-size: 16px; color: var(--text); }
+    .query-badge { padding: 3px 10px; background: var(--surface2); color: var(--accent); border-radius: 10px; font-size: 12px; font-family: var(--mono-font); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .open-all-btn { width: 100%; padding: 10px; font-size: 13px; background: var(--primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-family: var(--sans-font); margin-bottom: 6px; transition: all 0.2s; }
+    .open-all-btn:hover { background: var(--primary-hover); transform: translateY(-1px); }
+    .popup-note { font-size: 11px; color: var(--text-dim); text-align: center; margin-bottom: 14px; }
+    .link-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 16px; }
+    .link-btn { display: flex; align-items: center; justify-content: center; padding: 10px 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; text-decoration: none; color: var(--text); font-size: 13px; text-align: center; transition: all 0.2s; font-weight: 600; }
+    .link-btn:hover { background: var(--surface2); border-color: var(--accent-dim); color: var(--text); }
+    .link-btn.warning { border-color: var(--warning-border); background: var(--warning-bg); color: var(--warning-text); }
+    .link-btn.warning:hover { border-color: var(--accent); }
+
+    /* --- Divider --- */
+    .divider { border-top: 1px solid var(--border); margin: 24px 0; }
+
+    /* --- History --- */
+    .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .history-header h3 { font-size: 14px; color: var(--text-dim); }
+    .history-list { list-style: none; max-height: 260px; overflow-y: auto; }
+    .history-item { padding: 10px 6px; cursor: pointer; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--text); transition: background 0.15s; }
+    .history-item:hover { background: var(--surface2); }
+    .history-date { color: var(--text-dim); font-size: 11px; font-family: var(--mono-font); }
+    .history-preset { font-size: 10px; color: var(--text-dim); background: var(--surface2); padding: 1px 6px; border-radius: 6px; margin-left: 6px; }
+    .no-history { color: var(--text-dim); font-size: 13px; padding: 12px 0; }
 
     /* --- Footer --- */
-    .main-footer {
-      text-align: center;
-      padding: 30px 20px;
-      margin-top: auto;
-      font-size: 14px;
-      color: var(--text-dim);
-    }
+    .main-footer { text-align: center; padding: 30px 20px; margin-top: auto; font-size: 14px; color: var(--text-dim); }
 
-    /* --- App Specific Styles --- */
-    .results {
-      margin-top: 32px;
-      display: none;
-    }
-    .results.show { display: block; }
-    .results h2 { font-size: 18px; margin-bottom: 16px; color: var(--text); }
-    
-    .popup-note {
-      font-size: 12px;
-      color: var(--text-dim);
-      text-align: center;
-      margin-bottom: 16px;
-    }
-    
-    .link-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-    }
-    
-    .link-btn {
-      display: block;
-      padding: 12px 16px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      text-decoration: none;
-      color: var(--text);
-      font-size: 14px;
-      text-align: center;
-      transition: all 0.2s;
-      font-weight: 600;
-    }
-    .link-btn:hover {
-      background: var(--surface2);
-      border-color: var(--accent-dim);
-    }
-    .link-btn.warning {
-      border-color: #d19a7e;
-      background: #faf4f0;
-    }
-    [data-theme="dark"] .link-btn.warning {
-      background: #3a2211;
-      border-color: #ba7e60;
-      color: #eedbd0;
-    }
-    .link-btn.warning:hover {
-      border-color: #ba7e60;
-    }
-    
-    .query-display {
-      margin-top: 24px;
-      padding: 16px;
-      background: var(--surface);
-      border-radius: 6px;
-      border: 1px solid var(--border);
-    }
-    .query-display h3 { font-size: 14px; margin-bottom: 8px; color: var(--text-dim); }
-    .query-text { font-family: var(--mono-font); font-size: 14px; color: var(--text); word-break: break-all; }
-    
-    .history-section {
-      margin-top: 32px;
-      padding: 16px;
-      background: var(--surface);
-      border-radius: 6px;
-      border: 1px solid var(--border);
-    }
-    .history-section h3 {
-      font-size: 14px;
-      margin-bottom: 12px;
-      color: var(--text-dim);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .history-list { list-style: none; }
-    .history-item {
-      padding: 12px 0;
-      border-bottom: 1px solid var(--border);
-      cursor: pointer;
-      font-size: 14px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      color: var(--text);
-    }
-    .history-item:hover { color: var(--accent); }
-    .history-item:last-child { border-bottom: none; padding-bottom: 0; }
-    .history-item-date { color: var(--text-dim); font-size: 12px; margin-left: 16px; font-family: var(--mono-font);}
-    .no-history { color: var(--text-dim); font-size: 14px; padding: 12px 0;}
-    
-    @media (max-width: 480px) {
-      .link-grid { grid-template-columns: 1fr; }
-    }
+    /* --- Settings Page --- */
+    .back-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; color: var(--text-dim); margin-bottom: 16px; font-family: var(--sans-font); font-weight: 600; transition: all 0.2s; }
+    .back-btn:hover { background: var(--surface2); color: var(--text); }
+    .settings-title { font-size: 18px; margin-bottom: 20px; color: var(--text); }
+    .settings-section { margin-bottom: 24px; }
+    .settings-section h3 { font-size: 15px; margin-bottom: 4px; color: var(--text); }
+    .settings-desc { font-size: 12px; color: var(--text-dim); margin-bottom: 12px; }
+    .preset-card { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-bottom: 8px; }
+    .preset-card.custom { border-color: var(--accent-dim); }
+    .preset-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .preset-card-name { font-weight: 600; font-size: 14px; }
+    .preset-card-locale { font-size: 10px; color: var(--text-dim); background: var(--surface2); padding: 2px 8px; border-radius: 8px; }
+    .preset-card-searches { font-size: 12px; color: var(--text-dim); }
+    .preset-actions { display: flex; gap: 8px; margin-top: 8px; }
+    .preset-actions button { font-size: 12px; padding: 4px 10px; border-radius: 4px; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: var(--sans-font); transition: all 0.2s; }
+    .preset-actions button:hover { background: var(--surface2); }
+    .preset-actions button.delete { color: var(--danger); border-color: var(--danger); }
+    .preset-actions button.delete:hover { background: var(--danger); color: #fff; }
+    .btn-add { width: 100%; padding: 10px; font-size: 14px; background: var(--surface); color: var(--primary); border: 1px dashed var(--primary); border-radius: 6px; cursor: pointer; margin-top: 10px; font-family: var(--sans-font); font-weight: 600; transition: all 0.2s; }
+    .btn-add:hover { background: var(--surface2); }
+
+    /* --- Modal --- */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,.4); z-index: 100; }
+    .modal-overlay.show { display: flex; align-items: flex-start; justify-content: center; padding-top: 30px; }
+    .modal { background: var(--surface); border-radius: 10px; padding: 20px; width: 94%; max-width: 560px; max-height: 85vh; overflow-y: auto; border: 1px solid var(--border); }
+    .modal h3 { font-size: 16px; margin-bottom: 16px; color: var(--text); }
+    .modal .form-group { margin-bottom: 10px; }
+    .modal .form-control { padding: 8px 10px; font-size: 13px; }
+
+    /* --- Search Entries --- */
+    .search-entry { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-bottom: 8px; position: relative; }
+    .search-entry .remove-entry { position: absolute; top: 8px; right: 10px; background: none; border: none; color: var(--danger); cursor: pointer; font-size: 18px; line-height: 1; }
+    .entry-row { display: flex; gap: 8px; margin-bottom: 6px; }
+    .entry-row .entry-field { flex: 1; }
+    .entry-row .entry-field label { font-size: 11px; color: var(--text-dim); display: block; margin-bottom: 2px; }
+    .entry-row .entry-field input, .entry-row .entry-field select { width: 100%; padding: 6px 8px; font-size: 13px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); color: var(--text); font-family: var(--sans-font); }
+    .entry-query-row { margin-top: 6px; }
+    .entry-query-row label { font-size: 11px; color: var(--text-dim); display: block; margin-bottom: 2px; }
+    .entry-query-row input { width: 100%; padding: 6px 8px; font-size: 13px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); color: var(--text); }
+    .entry-url-preview { margin-top: 6px; padding: 6px 10px; background: var(--surface2); border-radius: 4px; font-size: 11px; font-family: var(--mono-font); color: var(--accent); word-break: break-all; cursor: pointer; border: 1px solid transparent; transition: border-color 0.15s; }
+    .entry-url-preview:hover { border-color: var(--accent-dim); }
+    .entry-url-edit { display: none; margin-top: 6px; }
+    .entry-url-edit input { width: 100%; padding: 6px 8px; font-size: 12px; font-family: var(--mono-font); border: 1px solid var(--accent); border-radius: 4px; background: var(--surface); color: var(--text); }
+    .entry-url-edit.show { display: block; }
+    .entry-options { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+    .entry-options label { font-size: 12px; color: var(--text-dim); display: flex; align-items: center; gap: 4px; cursor: pointer; }
+    .entry-validation { font-size: 11px; color: var(--danger); margin-top: 4px; display: none; }
+
+    .btn-add-search { font-size: 12px; padding: 6px 14px; background: var(--surface); border: 1px dashed var(--text-dim); border-radius: 4px; cursor: pointer; color: var(--text-dim); font-family: var(--sans-font); transition: all 0.2s; }
+    .btn-add-search:hover { border-color: var(--primary); color: var(--primary); }
+    .modal-actions { display: flex; gap: 10px; margin-top: 18px; }
+    .modal-actions button { flex: 1; padding: 10px; border-radius: 6px; cursor: pointer; font-size: 14px; font-family: var(--sans-font); font-weight: 600; transition: all 0.2s; }
+    .modal-actions .save { background: var(--primary); color: white; border: none; }
+    .modal-actions .save:hover { background: var(--primary-hover); }
+    .modal-actions .cancel { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+    .modal-actions .cancel:hover { background: var(--surface2); }
+    .json-toggle { font-size: 12px; color: var(--accent); cursor: pointer; background: none; border: none; font-family: var(--sans-font); }
+    .json-editor { width: 100%; min-height: 140px; font-family: var(--mono-font); font-size: 12px; border: 1px solid var(--border); border-radius: 6px; padding: 10px; display: none; background: var(--surface); color: var(--text); resize: vertical; }
+    .json-editor.show { display: block; }
+    .json-error { color: var(--danger); font-size: 12px; margin-top: 4px; display: none; }
+    .search-count { font-size: 11px; color: var(--text-dim); margin-bottom: 8px; }
+
+    @media (max-width: 480px) { .link-grid { grid-template-columns: 1fr; } .entry-row { flex-direction: column; gap: 4px; } }
   </style>
 </head>
 <body>
 
-  <!-- Shared Navigation Template -->
+  <!-- Top Nav -->
   <nav class="top-nav">
     <div class="nav-left">
       <a href="/" class="back-link">
@@ -256,12 +180,9 @@
     </div>
     <div class="nav-right">
       <select id="theme-select" class="ctrl-select">
-        <option value="auto" lang="ja">テーマ: 自動</option>
-        <option value="auto" lang="en">Theme: Auto</option>
-        <option value="light" lang="ja">ライト</option>
-        <option value="light" lang="en">Light</option>
-        <option value="dark" lang="ja">ダーク</option>
-        <option value="dark" lang="en">Dark</option>
+        <option value="auto" lang="ja">テーマ: 自動</option><option value="auto" lang="en">Theme: Auto</option>
+        <option value="light" lang="ja">ライト</option><option value="light" lang="en">Light</option>
+        <option value="dark" lang="ja">ダーク</option><option value="dark" lang="en">Dark</option>
       </select>
       <select id="lang-select" class="ctrl-select">
         <option value="ja">日本語</option>
@@ -271,78 +192,88 @@
   </nav>
 
   <div class="container">
-    <h1>
-      <span lang="ja">クロス検索ツール</span>
-      <span lang="en">Cross Search Tool</span>
-    </h1>
-    <p class="description">
-      <span lang="ja">キーワードを入力すると、各種サービスでの検索リンクを一括生成します。</span>
-      <span lang="en">Enter keywords to generate search links across multiple services at once.</span>
-    </p>
-        
-    <div class="form-group">
-      <label class="form-label" for="shopName">
-        <span lang="ja">店舗名 / キーワード *</span>
-        <span lang="en">Store Name / Keyword *</span>
-      </label>
-      <input type="text" id="shopName" class="form-control" placeholder="example: ヨドバシカメラ / Yodobashi Camera">
+    <!-- PAGE: Main -->
+    <div class="page active" id="pageMain">
+      <div class="preset-row">
+        <div class="select-wrap">
+          <label id="lbl-preset"></label>
+          <select class="preset-select" id="presetSelect"></select>
+        </div>
+        <button class="preset-settings-btn" id="openSettings"></button>
+      </div>
+      <div class="form-group">
+        <label class="form-label" id="lbl-search" for="searchInput"></label>
+        <input type="text" id="searchInput" class="form-control">
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="searchBtn"></button>
+        <button class="btn btn-secondary" id="clearInputBtn"></button>
+      </div>
+
+      <div class="results" id="results">
+        <div class="results-header">
+          <h2 id="lbl-searchLinks"></h2>
+          <span class="query-badge" id="queryBadge"></span>
+        </div>
+        <button class="open-all-btn" id="openAllBtn"></button>
+        <p class="popup-note" id="lbl-popupNote"></p>
+        <div class="link-grid" id="linkGrid"></div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="history-header">
+        <h3 id="lbl-history"></h3>
+        <button class="btn-danger-sm" id="clearBtn"></button>
+      </div>
+      <ul class="history-list" id="historyList"></ul>
     </div>
-        
-    <div class="form-group">
-      <label class="form-label" for="area">
-        <span lang="ja">エリア（任意）</span>
-        <span lang="en">Area (Optional)</span>
-      </label>
-      <input type="text" id="area" class="form-control" placeholder="example: 秋葉原 / Akihabara">
-    </div>
-        
-    <button class="btn btn-primary" onclick="generateLinks()">
-      <span lang="ja">検索リンクを生成</span>
-      <span lang="en">Generate Search Links</span>
-    </button>
-        
-    <div class="results" id="results">
-      <h2>
-        <span lang="ja">検索リンク</span>
-        <span lang="en">Search Links</span>
-      </h2>
-      <button class="btn btn-primary" onclick="openAllLinks()" style="margin-bottom: 8px;">
-        <span lang="ja">すべて開く</span>
-        <span lang="en">Open All</span>
-      </button>
-      <p class="popup-note">
-        <span lang="ja">※ ポップアップの許可が必要です。短時間に多数のタブを開くとreCAPTCHAが表示される場合があります。</span>
-        <span lang="en">* Requires popup permissions. Opening many tabs quickly may trigger reCAPTCHA.</span>
-      </p>
-      
-      <div class="link-grid" id="linkGrid"></div>
-            
-      <div class="query-display">
-        <h3>
-          <span lang="ja">検索クエリ</span>
-          <span lang="en">Current Query</span>
-        </h3>
-        <p class="query-text" id="queryText"></p>
+
+    <!-- PAGE: Settings -->
+    <div class="page" id="pageSettings">
+      <button class="back-btn" id="backToMain">← <span id="lbl-settingsBack"></span></button>
+      <h1 class="settings-title" id="lbl-settingsTitle"></h1>
+      <div class="settings-section">
+        <h3 id="lbl-builtinTitle"></h3>
+        <p class="settings-desc" id="lbl-builtinDesc"></p>
+        <div id="builtinList"></div>
+      </div>
+      <div class="settings-section">
+        <h3 id="lbl-customTitle"></h3>
+        <p class="settings-desc" id="lbl-customDesc"></p>
+        <div id="customList"></div>
+        <button class="btn-add" id="addCustomBtn"></button>
       </div>
     </div>
-        
-    <div class="history-section">
-      <h3>
-        <span>
-          <span lang="ja">検索履歴</span>
-          <span lang="en">Search History</span>
-        </span>
-        <button class="btn btn-danger" onclick="clearHistory()">
-          <span lang="ja">クリア</span>
-          <span lang="en">Clear</span>
-        </button>
-      </h3>
-      <ul class="history-list" id="historyList">
-        <li class="no-history">
-          <span lang="ja">履歴がありません</span>
-          <span lang="en">No history</span>
-        </li>
-      </ul>
+  </div>
+
+  <!-- Modal: Edit Preset -->
+  <div class="modal-overlay" id="editModal">
+    <div class="modal">
+      <h3 id="modalTitle"></h3>
+      <div class="form-group">
+        <label class="form-label" id="lbl-presetName"></label>
+        <input type="text" id="editName" class="form-control">
+      </div>
+      <div class="form-group">
+        <label class="form-label" id="lbl-locale"></label>
+        <select id="editLocale" class="form-control">
+          <option value="ja" id="opt-localeJa"></option>
+          <option value="en" id="opt-localeEn"></option>
+        </select>
+      </div>
+      <div class="divider"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <span class="search-count" id="searchCount"></span>
+        <button class="json-toggle" id="jsonToggle"></button>
+      </div>
+      <textarea class="json-editor" id="jsonEditor" placeholder='[{"label":"Google","url":"https://...{query}","warning":false}]'></textarea>
+      <div class="json-error" id="jsonError"></div>
+      <div id="searchEntries"></div>
+      <button class="btn-add-search" id="addSearchEntry"></button>
+      <div class="modal-actions">
+        <button class="cancel" id="editCancel"></button>
+        <button class="save" id="editSave"></button>
+      </div>
     </div>
   </div>
 
@@ -350,187 +281,568 @@
     <a href="https://cloudavenue.jp" target="_blank">cloudavenue.jp</a>
   </footer>
 
-  <!-- Shared Script Template -->
-  <script id="cloudavenue-shared-script">
-    (function() {
-      const getStorage = (key, defaultVal) => localStorage.getItem(key) || defaultVal;
-      const setStorage = (key, val) => localStorage.setItem(key, val);
-
-      // Theme
-      const themeSelect = document.getElementById('theme-select');
-      const applyTheme = (theme) => {
-        if (theme === 'auto') {
-          const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-          document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-        } else {
-          document.documentElement.setAttribute('data-theme', theme);
-        }
-      };
-      const initTheme = () => {
-        const saved = getStorage('cloudavenue-theme', 'auto');
-        if (themeSelect) themeSelect.value = saved;
-        applyTheme(saved);
-      };
-      if (themeSelect) {
-        themeSelect.addEventListener('change', (e) => {
-          setStorage('cloudavenue-theme', e.target.value);
-          applyTheme(e.target.value);
-        });
-      }
-
-      // Language
-      const langSelect = document.getElementById('lang-select');
-      const applyLang = (lang) => {
-        document.documentElement.setAttribute('lang', lang);
-      };
-      const initLang = () => {
-        const defaultLang = (navigator.language || navigator.userLanguage).startsWith('ja') ? 'ja' : 'en';
-        const saved = getStorage('cloudavenue-lang', defaultLang);
-        if (langSelect) langSelect.value = saved;
-        applyLang(saved);
-      };
-      if (langSelect) {
-        langSelect.addEventListener('change', (e) => {
-          setStorage('cloudavenue-lang', e.target.value);
-          applyLang(e.target.value);
-        });
-      }
-
-      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-        if (getStorage('cloudavenue-theme', 'auto') === 'auto') {
-          applyTheme('auto');
-        }
-      });
-
-      initTheme();
-      initLang();
-    })();
-  </script>
-
-  <!-- App Specific Script -->
   <script>
-    let currentLinks = [];
-        
-    function generateLinks() {
-      const shopName = document.getElementById('shopName').value.trim();
-      const area = document.getElementById('area').value.trim();
-      
-      const isEn = document.documentElement.lang === 'en';
-      
-      if (!shopName) {
-        alert(isEn ? 'Please enter a keyword.' : '店舗名/キーワードを入力してください');
-        return;
-      }
-      
-      const baseQuery = area ? `${shopName} ${area}` : shopName;
-      
-      const searches = [
-        { label: isEn ? 'Google Search' : 'Google検索', url: `https://www.google.com/search?q=${encodeURIComponent(baseQuery)}`, type: 'normal' },
-        { label: isEn ? 'Google Maps' : 'Googleマップ', url: `https://www.google.com/maps/search/${encodeURIComponent(baseQuery)}`, type: 'normal' },
-        { label: isEn ? 'Official Site' : '公式サイト', url: `https://www.google.com/search?q=${encodeURIComponent(baseQuery + (isEn ? ' official site' : ' 公式サイト'))}`, type: 'normal' },
-        { label: 'Instagram', url: `https://www.google.com/search?q=${encodeURIComponent('site:instagram.com ' + baseQuery)}`, type: 'normal' },
-        { label: 'X (Twitter)', url: `https://www.google.com/search?q=${encodeURIComponent('site:twitter.com ' + baseQuery)}`, type: 'normal' },
-        { label: 'TikTok', url: `https://www.google.com/search?q=${encodeURIComponent('site:tiktok.com ' + baseQuery)}`, type: 'normal' },
-        { label: 'Tabelog', url: `https://www.google.com/search?q=${encodeURIComponent('site:tabelog.com ' + baseQuery)}`, type: 'normal' },
-        { label: 'Retty', url: `https://www.google.com/search?q=${encodeURIComponent('site:retty.me ' + baseQuery)}`, type: 'normal' },
-        { label: isEn ? 'Closed Info' : '閉業情報', url: `https://www.google.com/search?q=${encodeURIComponent(baseQuery + (isEn ? ' closed' : ' 閉業'))}`, type: 'warning' },
-        { label: isEn ? 'Relocation Info' : '移転情報', url: `https://www.google.com/search?q=${encodeURIComponent(baseQuery + (isEn ? ' relocated' : ' 移転'))}`, type: 'warning' },
-      ];
-      
-      currentLinks = [];
-      const linkGrid = document.getElementById('linkGrid');
-      linkGrid.innerHTML = '';
-      
-      searches.forEach(search => {
-        currentLinks.push(search.url);
-        const link = document.createElement('a');
-        link.href = search.url;
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
-        link.className = `link-btn ${search.type}`;
-        link.textContent = search.label;
-        linkGrid.appendChild(link);
-      });
-      
-      document.getElementById('queryText').textContent = baseQuery;
-      document.getElementById('results').classList.add('show');
-      
-      saveToHistory(shopName, area);
-    }
-        
-    function openAllLinks() {
-      currentLinks.forEach((url, index) => {
-        setTimeout(() => {
-          window.open(url, '_blank');
-        }, index * 100);
-      });
-    }
-        
-    function saveToHistory(shopName, area) {
-      let history = JSON.parse(localStorage.getItem('crossCheckHistory') || '[]');
-      
-      const entry = {
-        shopName,
-        area,
-        date: new Date().toISOString()
-      };
-      
-      history = history.filter(h => !(h.shopName === shopName && h.area === area));
-      history.unshift(entry);
-      history = history.slice(0, 20);
-      
-      localStorage.setItem('crossCheckHistory', JSON.stringify(history));
-      renderHistory();
-    }
-        
-    function renderHistory() {
-      const history = JSON.parse(localStorage.getItem('crossCheckHistory') || '[]');
-      const historyList = document.getElementById('historyList');
-      const isEn = document.documentElement.lang === 'en';
-      
-      if (history.length === 0) {
-        historyList.innerHTML = `<li class="no-history"><span>${isEn ? 'No history' : '履歴がありません'}</span></li>`;
-        return;
-      }
-      
-      historyList.innerHTML = history.map(entry => {
-        const displayText = entry.area ? `${entry.shopName}（${entry.area}）` : entry.shopName;
-        const date = new Date(entry.date);
-        const dateStr = `${date.getMonth() + 1}/${date.getDate()}`;
-        return `
-          <li class="history-item" onclick="loadFromHistory('${entry.shopName.replace(/'/g, "\\'")}', '${(entry.area || '').replace(/'/g, "\\'")}')">
-            <span class="history-item-text">${displayText}</span>
-            <span class="history-item-date">${dateStr}</span>
-          </li>
-        `;
-      }).join('');
-    }
-        
-    function loadFromHistory(shopName, area) {
-      document.getElementById('shopName').value = shopName;
-      document.getElementById('area').value = area;
-      generateLinks();
-    }
-        
-    function clearHistory() {
-      const isEn = document.documentElement.lang === 'en';
-      if (confirm(isEn ? 'Clear all search history?' : '検索履歴をすべて削除しますか？')) {
-        localStorage.removeItem('crossCheckHistory');
-        renderHistory();
-      }
-    }
-        
-    document.getElementById('shopName').addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') generateLinks();
-    });
-    document.getElementById('area').addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') generateLinks();
-    });
+// ============================================================
+// Cross Search Tool - Web Version
+// ============================================================
 
-    // Re-render history on lang change to translate "No history" dynamically if empty
-    document.getElementById('lang-select').addEventListener('change', renderHistory);
-        
+// --- i18n Dictionary ---
+const I18N = {
+  ja: {
+    presetLabel:'プリセット', presetSettings:'プリセット設定', searchLabel:'キーワード',
+    searchPlaceholder:'店舗名、製品名、施設名...', searchBtn:'検索リンクを生成', clearInputBtn:'クリア',
+    searchLinksHeader:'検索リンク', openAllBtn:'すべて新規タブで開く',
+    popupNote:'※ 複数検索のためreCAPTCHAが表示される場合があります',
+    historyHeader:'📋 検索履歴', clearHistoryBtn:'クリア', noHistory:'履歴がありません',
+    settingsBack:'戻る', settingsTitle:'⚙️ プリセット管理',
+    builtinPresetsTitle:'ビルトインプリセット', builtinPresetsDesc:'用途別の検索先セットです。変更はできません。',
+    customPresetsTitle:'カスタムプリセット', customPresetsDesc:'自分だけの検索先セットを作成できます（最大10個）。',
+    noCustomPresets:'カスタムプリセットはまだありません', addCustomBtn:'＋ 新規作成',
+    editBtn:'編集', deleteBtn:'削除',
+    modalTitleNew:'新規プリセット', modalTitleEdit:'プリセット編集',
+    presetNameLabel:'プリセット名', presetNamePlaceholder:'例: 🏠 不動産',
+    localeLabel:'言語グループ', localeJa:'日本語', localeEn:'English',
+    searchCount:'検索先: $1 / 10', jsonToggle:'JSON編集に切替', jsonToggleBack:'フォーム編集に切替',
+    addSearchEntry:'＋ 検索先を追加', cancelBtn:'キャンセル', saveBtn:'保存',
+    serviceNameLabel:'サービス名', serviceNamePlaceholder:'例: 食べログ',
+    searchEngineLabel:'検索エンジン', engineGoogle:'Google検索', engineMaps:'Googleマップ',
+    engineYoutube:'YouTube', engineCustom:'カスタムURL',
+    queryLabel:'検索クエリ（{query}が入力キーワードに置換されます）',
+    queryPlaceholder:'例: site:tabelog.com {query}',
+    urlEditTitle:'クリックでURL直接編集', removeEntryTitle:'削除', warningFlag:'⚠ 警告フラグ',
+    urlValidationWarning:'⚠ URLに {query} が含まれていません。検索キーワードが反映されない可能性があります。',
+    optgroupJa:'日本語', optgroupEn:'English', optgroupCustom:'カスタム',
+    alertMaxSearchTargets:'検索先は最大10個です', alertAddOneSearch:'検索先を1つ以上追加してください',
+    alertMaxCustomPresets:'カスタムプリセットは最大10個です', confirmDeletePreset:'このプリセットを削除しますか？',
+    jsonErrorPrefix:'JSONエラー: ', jsonErrorArray:'配列が必要です', jsonErrorFields:'label と url は必須です',
+    alertEnterKeyword:'キーワードを入力してください', confirmClearHistory:'検索履歴をすべて削除しますか？'
+  },
+  en: {
+    presetLabel:'Preset', presetSettings:'Preset settings', searchLabel:'Search',
+    searchPlaceholder:'Shop name, product, place...', searchBtn:'Generate search links', clearInputBtn:'Clear',
+    searchLinksHeader:'Search links', openAllBtn:'Open all in new tabs',
+    popupNote:'* reCAPTCHA may appear due to multiple searches',
+    historyHeader:'📋 Search history', clearHistoryBtn:'Clear', noHistory:'No search history',
+    settingsBack:'Back', settingsTitle:'⚙️ Preset Management',
+    builtinPresetsTitle:'Built-in Presets', builtinPresetsDesc:'Pre-configured search sets by category. Cannot be modified.',
+    customPresetsTitle:'Custom Presets', customPresetsDesc:'Create your own search sets (up to 10).',
+    noCustomPresets:'No custom presets yet', addCustomBtn:'+ Create new',
+    editBtn:'Edit', deleteBtn:'Delete',
+    modalTitleNew:'New Preset', modalTitleEdit:'Edit Preset',
+    presetNameLabel:'Preset name', presetNamePlaceholder:'e.g. 🏠 Real Estate',
+    localeLabel:'Language group', localeJa:'Japanese', localeEn:'English',
+    searchCount:'Search targets: $1 / 10', jsonToggle:'Switch to JSON editor', jsonToggleBack:'Switch to form editor',
+    addSearchEntry:'+ Add search target', cancelBtn:'Cancel', saveBtn:'Save',
+    serviceNameLabel:'Service name', serviceNamePlaceholder:'e.g. Yelp',
+    searchEngineLabel:'Search engine', engineGoogle:'Google Search', engineMaps:'Google Maps',
+    engineYoutube:'YouTube', engineCustom:'Custom URL',
+    queryLabel:'Search query ({query} will be replaced with your keyword)',
+    queryPlaceholder:'e.g. site:yelp.com {query}',
+    urlEditTitle:'Click to edit URL directly', removeEntryTitle:'Remove', warningFlag:'⚠ Warning flag',
+    urlValidationWarning:'⚠ URL does not contain {query}. Keywords may not be applied.',
+    optgroupJa:'Japanese', optgroupEn:'English', optgroupCustom:'Custom',
+    alertMaxSearchTargets:'Maximum 10 search targets', alertAddOneSearch:'Add at least one search target',
+    alertMaxCustomPresets:'Maximum 10 custom presets', confirmDeletePreset:'Delete this preset?',
+    jsonErrorPrefix:'JSON error: ', jsonErrorArray:'Array required', jsonErrorFields:'label and url are required',
+    alertEnterKeyword:'Please enter a keyword.', confirmClearHistory:'Clear all search history?'
+  }
+};
+function getLang() { return document.documentElement.getAttribute('lang') || 'ja'; }
+function M(key, args) {
+  let msg = (I18N[getLang()] || I18N.ja)[key] || key;
+  if (args) args.forEach((a, i) => { msg = msg.replace('$'+(i+1), a); });
+  return msg;
+}
+
+// --- Built-in Presets ---
+const BUILTIN_PRESETS = [
+  { id:'general-ja', name:'🔍 一般', locale:'ja', builtin:true, searches:[
+    {label:'Google',url:'https://www.google.com/search?q={query}',warning:false},
+    {label:'マップ',url:'https://www.google.com/maps/search/{query}',warning:false},
+    {label:'Instagram',url:'https://www.google.com/search?q=site:instagram.com {query}',warning:false},
+    {label:'X',url:'https://www.google.com/search?q=site:twitter.com {query}',warning:false},
+    {label:'TikTok',url:'https://www.google.com/search?q=site:tiktok.com {query}',warning:false},
+    {label:'Reddit',url:'https://www.google.com/search?q=site:reddit.com {query}',warning:false},
+    {label:'閉業',url:'https://www.google.com/search?q={query} 閉業',warning:true},
+    {label:'移転',url:'https://www.google.com/search?q={query} 移転',warning:true},
+  ]},
+  { id:'cooking-ja', name:'🍳 料理', locale:'ja', builtin:true, searches:[
+    {label:'Google',url:'https://www.google.com/search?q={query} レシピ',warning:false},
+    {label:'YouTube',url:'https://www.youtube.com/results?search_query={query} レシピ',warning:false},
+    {label:'クックパッド',url:'https://www.google.com/search?q=site:cookpad.com {query}',warning:false},
+    {label:'クラシル',url:'https://www.google.com/search?q=site:kurashiru.com {query}',warning:false},
+    {label:'DELISH',url:'https://www.google.com/search?q=site:delishkitchen.tv {query}',warning:false},
+    {label:'Nadia',url:'https://www.google.com/search?q=site:oceans-nadia.com {query}',warning:false},
+    {label:'Instagram',url:'https://www.google.com/search?q=site:instagram.com {query} レシピ',warning:false},
+    {label:'TikTok',url:'https://www.google.com/search?q=site:tiktok.com {query} レシピ',warning:false},
+  ]},
+  { id:'food-ja', name:'🍜 飲食', locale:'ja', builtin:true, searches:[
+    {label:'Google',url:'https://www.google.com/search?q={query}',warning:false},
+    {label:'マップ',url:'https://www.google.com/maps/search/{query}',warning:false},
+    {label:'食べログ',url:'https://www.google.com/search?q=site:tabelog.com {query}',warning:false},
+    {label:'Retty',url:'https://www.google.com/search?q=site:retty.me {query}',warning:false},
+    {label:'Instagram',url:'https://www.google.com/search?q=site:instagram.com {query}',warning:false},
+    {label:'X',url:'https://www.google.com/search?q=site:twitter.com {query}',warning:false},
+    {label:'TikTok',url:'https://www.google.com/search?q=site:tiktok.com {query}',warning:false},
+    {label:'閉業',url:'https://www.google.com/search?q={query} 閉業',warning:true},
+    {label:'移転',url:'https://www.google.com/search?q={query} 移転',warning:true},
+  ]},
+  { id:'electronics-ja', name:'🛒 買物', locale:'ja', builtin:true, searches:[
+    {label:'Google',url:'https://www.google.com/search?q={query}',warning:false},
+    {label:'価格.com',url:'https://www.google.com/search?q=site:kakaku.com {query}',warning:false},
+    {label:'Amazon',url:'https://www.google.com/search?q=site:amazon.co.jp {query}',warning:false},
+    {label:'楽天',url:'https://www.google.com/search?q=site:rakuten.co.jp {query}',warning:false},
+    {label:'X',url:'https://www.google.com/search?q=site:twitter.com {query}',warning:false},
+    {label:'YouTube',url:'https://www.youtube.com/results?search_query={query}',warning:false},
+  ]},
+  { id:'travel-ja', name:'✈️ 旅行', locale:'ja', builtin:true, searches:[
+    {label:'Google',url:'https://www.google.com/search?q={query}',warning:false},
+    {label:'マップ',url:'https://www.google.com/maps/search/{query}',warning:false},
+    {label:'じゃらん',url:'https://www.google.com/search?q=site:jalan.net {query}',warning:false},
+    {label:'楽天トラベル',url:'https://www.google.com/search?q=site:travel.rakuten.co.jp {query}',warning:false},
+    {label:'Booking.com',url:'https://www.google.com/search?q=site:booking.com {query}',warning:false},
+    {label:'TripAdvisor',url:'https://www.google.com/search?q=site:tripadvisor.jp {query}',warning:false},
+    {label:'Instagram',url:'https://www.google.com/search?q=site:instagram.com {query}',warning:false},
+    {label:'閉業',url:'https://www.google.com/search?q={query} 閉業',warning:true},
+    {label:'移転',url:'https://www.google.com/search?q={query} 移転',warning:true},
+  ]},
+  { id:'general-en', name:'🔍 General', locale:'en', builtin:true, searches:[
+    {label:'Google',url:'https://www.google.com/search?q={query}',warning:false},
+    {label:'Maps',url:'https://www.google.com/maps/search/{query}',warning:false},
+    {label:'Instagram',url:'https://www.google.com/search?q=site:instagram.com {query}',warning:false},
+    {label:'X',url:'https://www.google.com/search?q=site:twitter.com {query}',warning:false},
+    {label:'TikTok',url:'https://www.google.com/search?q=site:tiktok.com {query}',warning:false},
+    {label:'Reddit',url:'https://www.google.com/search?q=site:reddit.com {query}',warning:false},
+    {label:'Closed?',url:'https://www.google.com/search?q={query} permanently closed',warning:true},
+    {label:'Relocated?',url:'https://www.google.com/search?q={query} relocated',warning:true},
+  ]},
+  { id:'cooking-en', name:'🍳 Cooking', locale:'en', builtin:true, searches:[
+    {label:'Google',url:'https://www.google.com/search?q={query} recipe',warning:false},
+    {label:'YouTube',url:'https://www.youtube.com/results?search_query={query} recipe',warning:false},
+    {label:'AllRecipes',url:'https://www.google.com/search?q=site:allrecipes.com {query}',warning:false},
+    {label:'Food Network',url:'https://www.google.com/search?q=site:foodnetwork.com {query}',warning:false},
+    {label:'Epicurious',url:'https://www.google.com/search?q=site:epicurious.com {query}',warning:false},
+    {label:'Tasty',url:'https://www.google.com/search?q=site:tasty.co {query}',warning:false},
+    {label:'Instagram',url:'https://www.google.com/search?q=site:instagram.com {query} recipe',warning:false},
+    {label:'TikTok',url:'https://www.google.com/search?q=site:tiktok.com {query} recipe',warning:false},
+  ]},
+  { id:'food-en', name:'🍜 Restaurants', locale:'en', builtin:true, searches:[
+    {label:'Google',url:'https://www.google.com/search?q={query}',warning:false},
+    {label:'Maps',url:'https://www.google.com/maps/search/{query}',warning:false},
+    {label:'Yelp',url:'https://www.google.com/search?q=site:yelp.com {query}',warning:false},
+    {label:'TripAdvisor',url:'https://www.google.com/search?q=site:tripadvisor.com {query}',warning:false},
+    {label:'Instagram',url:'https://www.google.com/search?q=site:instagram.com {query}',warning:false},
+    {label:'TikTok',url:'https://www.google.com/search?q=site:tiktok.com {query}',warning:false},
+    {label:'OpenTable',url:'https://www.google.com/search?q=site:opentable.com {query}',warning:false},
+    {label:'Closed?',url:'https://www.google.com/search?q={query} permanently closed',warning:true},
+    {label:'Relocated?',url:'https://www.google.com/search?q={query} relocated',warning:true},
+  ]},
+  { id:'electronics-en', name:'🛒 Shopping', locale:'en', builtin:true, searches:[
+    {label:'Google',url:'https://www.google.com/search?q={query}',warning:false},
+    {label:'Amazon',url:'https://www.google.com/search?q=site:amazon.com {query}',warning:false},
+    {label:'eBay',url:'https://www.google.com/search?q=site:ebay.com {query}',warning:false},
+    {label:'Reddit',url:'https://www.google.com/search?q=site:reddit.com {query}',warning:false},
+    {label:'YouTube',url:'https://www.youtube.com/results?search_query={query} review',warning:false},
+    {label:'Best Buy',url:'https://www.google.com/search?q=site:bestbuy.com {query}',warning:false},
+  ]},
+  { id:'travel-en', name:'✈️ Travel', locale:'en', builtin:true, searches:[
+    {label:'Google',url:'https://www.google.com/search?q={query}',warning:false},
+    {label:'Maps',url:'https://www.google.com/maps/search/{query}',warning:false},
+    {label:'Booking.com',url:'https://www.google.com/search?q=site:booking.com {query}',warning:false},
+    {label:'TripAdvisor',url:'https://www.google.com/search?q=site:tripadvisor.com {query}',warning:false},
+    {label:'Airbnb',url:'https://www.google.com/search?q=site:airbnb.com {query}',warning:false},
+    {label:'Expedia',url:'https://www.google.com/search?q=site:expedia.com {query}',warning:false},
+    {label:'Instagram',url:'https://www.google.com/search?q=site:instagram.com {query}',warning:false},
+    {label:'Closed?',url:'https://www.google.com/search?q={query} permanently closed',warning:true},
+    {label:'Relocated?',url:'https://www.google.com/search?q={query} relocated',warning:true},
+  ]},
+];
+
+// --- Storage Helper (localStorage wrapper) ---
+const Store = {
+  _get(k, def) { try { return JSON.parse(localStorage.getItem(k)) || def; } catch { return def; } },
+  _set(k, v) { localStorage.setItem(k, JSON.stringify(v)); },
+  getCustomPresets() { return this._get('cc-customPresets', []); },
+  saveCustomPresets(p) { this._set('cc-customPresets', p); },
+  getActivePresetId() { return localStorage.getItem('cc-activePresetId') || ''; },
+  setActivePresetId(id) { localStorage.setItem('cc-activePresetId', id); },
+  getHistory() { return this._get('cc-history', []); },
+  saveHistory(h) { this._set('cc-history', h); },
+  clearHistory() { localStorage.removeItem('cc-history'); },
+};
+
+function getAllPresets() { return [...BUILTIN_PRESETS, ...Store.getCustomPresets()]; }
+function getActivePreset() {
+  const all = getAllPresets();
+  const id = Store.getActivePresetId();
+  if (id) { const f = all.find(p => p.id === id); if (f) return f; }
+  const isJa = getLang() === 'ja';
+  return all.find(p => p.id === (isJa ? 'general-ja' : 'general-en')) || all[0];
+}
+function buildUrls(preset, query) {
+  return preset.searches.map(s => ({
+    label: s.label,
+    url: s.url.replace(/\{query\}/g, encodeURIComponent(query)),
+    warning: s.warning
+  }));
+}
+
+// --- Helpers ---
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escA(s) { return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function pad(n) { return String(n).padStart(2,'0'); }
+
+// ============================================================
+// Main App Logic
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  // --- Theme & Language (shared logic) ---
+  const themeSelect = document.getElementById('theme-select');
+  const langSelect = document.getElementById('lang-select');
+  const applyTheme = (theme) => {
+    if (theme === 'auto') {
+      document.documentElement.setAttribute('data-theme', window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    } else {
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+  };
+  const savedTheme = localStorage.getItem('cloudavenue-theme') || 'auto';
+  themeSelect.value = savedTheme; applyTheme(savedTheme);
+  themeSelect.addEventListener('change', e => { localStorage.setItem('cloudavenue-theme', e.target.value); applyTheme(e.target.value); });
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if ((localStorage.getItem('cloudavenue-theme') || 'auto') === 'auto') applyTheme('auto');
+  });
+  const defaultLang = (navigator.language || '').startsWith('ja') ? 'ja' : 'en';
+  const savedLang = localStorage.getItem('cloudavenue-lang') || defaultLang;
+  langSelect.value = savedLang;
+  document.documentElement.setAttribute('lang', savedLang);
+  langSelect.addEventListener('change', e => {
+    localStorage.setItem('cloudavenue-lang', e.target.value);
+    document.documentElement.setAttribute('lang', e.target.value);
+    applyI18n(); loadPresetSelect(); renderHistory();
+  });
+
+  // --- Element Refs ---
+  const pageMain = document.getElementById('pageMain');
+  const pageSettings = document.getElementById('pageSettings');
+  const searchInput = document.getElementById('searchInput');
+  const resultsDiv = document.getElementById('results');
+  const linkGrid = document.getElementById('linkGrid');
+  const queryBadge = document.getElementById('queryBadge');
+  const presetSelect = document.getElementById('presetSelect');
+  let currentLinks = [];
+
+  // --- i18n: Apply all labels ---
+  function applyI18n() {
+    document.getElementById('lbl-preset').textContent = M('presetLabel');
+    document.getElementById('openSettings').textContent = M('presetSettings');
+    document.getElementById('lbl-search').textContent = M('searchLabel');
+    searchInput.placeholder = M('searchPlaceholder');
+    document.getElementById('searchBtn').textContent = M('searchBtn');
+    document.getElementById('clearInputBtn').textContent = M('clearInputBtn');
+    document.getElementById('lbl-searchLinks').textContent = M('searchLinksHeader');
+    document.getElementById('openAllBtn').textContent = M('openAllBtn');
+    document.getElementById('lbl-popupNote').textContent = M('popupNote');
+    document.getElementById('lbl-history').textContent = M('historyHeader');
+    document.getElementById('clearBtn').textContent = M('clearHistoryBtn');
+    document.getElementById('lbl-settingsBack').textContent = M('settingsBack');
+    document.getElementById('lbl-settingsTitle').textContent = M('settingsTitle');
+    document.getElementById('lbl-builtinTitle').textContent = M('builtinPresetsTitle');
+    document.getElementById('lbl-builtinDesc').textContent = M('builtinPresetsDesc');
+    document.getElementById('lbl-customTitle').textContent = M('customPresetsTitle');
+    document.getElementById('lbl-customDesc').textContent = M('customPresetsDesc');
+    document.getElementById('addCustomBtn').textContent = M('addCustomBtn');
+    document.getElementById('addSearchEntry').textContent = M('addSearchEntry');
+    document.getElementById('editCancel').textContent = M('cancelBtn');
+    document.getElementById('editSave').textContent = M('saveBtn');
+    document.getElementById('jsonToggle').textContent = M('jsonToggle');
+    document.getElementById('editName').placeholder = M('presetNamePlaceholder');
+    document.getElementById('lbl-presetName').textContent = M('presetNameLabel');
+    document.getElementById('lbl-locale').textContent = M('localeLabel');
+    document.getElementById('opt-localeJa').textContent = M('localeJa');
+    document.getElementById('opt-localeEn').textContent = M('localeEn');
+    document.title = 'Cross Search Tool';
+  }
+  applyI18n();
+
+  // --- Page Navigation ---
+  document.getElementById('openSettings').addEventListener('click', () => {
+    pageMain.classList.remove('active'); pageSettings.classList.add('active'); renderSettings();
+  });
+  document.getElementById('backToMain').addEventListener('click', () => {
+    pageSettings.classList.remove('active'); pageMain.classList.add('active'); loadPresetSelect();
+  });
+
+  // --- Preset Selector ---
+  function loadPresetSelect() {
+    const all = getAllPresets();
+    const active = getActivePreset();
+    presetSelect.innerHTML = '';
+    const isJa = getLang() === 'ja';
+    const jaGroup = document.createElement('optgroup'); jaGroup.label = M('optgroupJa');
+    const enGroup = document.createElement('optgroup'); enGroup.label = M('optgroupEn');
+    const customGroup = document.createElement('optgroup'); customGroup.label = M('optgroupCustom');
+    all.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.id; opt.textContent = p.name;
+      if (p.id === active.id) opt.selected = true;
+      if (!p.builtin) customGroup.appendChild(opt);
+      else if (p.locale === 'ja') jaGroup.appendChild(opt);
+      else enGroup.appendChild(opt);
+    });
+    if (isJa) {
+      if (jaGroup.children.length) presetSelect.appendChild(jaGroup);
+      if (enGroup.children.length) presetSelect.appendChild(enGroup);
+    } else {
+      if (enGroup.children.length) presetSelect.appendChild(enGroup);
+      if (jaGroup.children.length) presetSelect.appendChild(jaGroup);
+    }
+    if (customGroup.children.length) presetSelect.appendChild(customGroup);
+  }
+  presetSelect.addEventListener('change', () => Store.setActivePresetId(presetSelect.value));
+  loadPresetSelect();
+
+  // --- Search ---
+  function doSearch(query, presetId) {
+    query = query || searchInput.value.trim();
+    if (!query) { searchInput.classList.add('error'); searchInput.focus(); return; }
+    let preset;
+    if (presetId) { preset = getAllPresets().find(p => p.id === presetId); }
+    if (!preset) preset = getActivePreset();
+    if (presetId) {
+      const opt = presetSelect.querySelector(`option[value="${presetId}"]`);
+      if (opt) { presetSelect.value = presetId; Store.setActivePresetId(presetId); }
+    }
+    const searches = buildUrls(preset, query);
+    currentLinks = searches.map(s => s.url);
+    queryBadge.textContent = query;
+    linkGrid.innerHTML = '';
+    searches.forEach(s => {
+      const a = document.createElement('a');
+      a.href = s.url; a.target = '_blank'; a.rel = 'noopener noreferrer';
+      a.className = `link-btn ${s.warning ? 'warning' : ''}`;
+      a.textContent = s.label;
+      linkGrid.appendChild(a);
+    });
+    resultsDiv.classList.add('show');
+    searchInput.value = query;
+    saveToHistory(query, preset.id, preset.name);
     renderHistory();
+  }
+  document.getElementById('searchBtn').addEventListener('click', () => doSearch());
+  searchInput.addEventListener('keypress', e => { if (e.key === 'Enter') doSearch(); });
+  searchInput.addEventListener('input', () => searchInput.classList.remove('error'));
+  document.getElementById('clearInputBtn').addEventListener('click', () => {
+    searchInput.value = ''; resultsDiv.classList.remove('show');
+    linkGrid.innerHTML = ''; queryBadge.textContent = ''; currentLinks = []; searchInput.focus();
+  });
+  document.getElementById('openAllBtn').addEventListener('click', () => {
+    currentLinks.forEach((url, i) => setTimeout(() => window.open(url, '_blank'), i * 120));
+  });
+
+  // --- History ---
+  function saveToHistory(query, presetId, presetName) {
+    let history = Store.getHistory();
+    const entry = { query, presetId: presetId||'', presetName: presetName||'', date: new Date().toISOString() };
+    history = history.filter(h => !(h.query === query && h.presetId === presetId));
+    history.unshift(entry);
+    history = history.slice(0, 30);
+    Store.saveHistory(history);
+  }
+  function renderHistory() {
+    const history = Store.getHistory();
+    const list = document.getElementById('historyList');
+    if (!history.length) { list.innerHTML = `<li class="no-history">${esc(M('noHistory'))}</li>`; return; }
+    list.innerHTML = history.slice(0, 20).map(e => {
+      const d = new Date(e.date);
+      const ds = `${d.getMonth()+1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      const presetLabel = e.presetName ? ` <span class="history-preset">${esc(e.presetName)}</span>` : '';
+      return `<li class="history-item" data-query="${escA(e.query)}" data-preset="${escA(e.presetId||'')}"><span>${esc(e.query)}${presetLabel}</span><span class="history-date">${ds}</span></li>`;
+    }).join('');
+    list.querySelectorAll('.history-item').forEach(item => {
+      item.addEventListener('click', () => doSearch(item.dataset.query, item.dataset.preset || undefined));
+    });
+  }
+  document.getElementById('clearBtn').addEventListener('click', () => {
+    if (confirm(M('confirmClearHistory'))) { Store.clearHistory(); renderHistory(); }
+  });
+  renderHistory();
+
+  // --- Settings Page ---
+  function renderSettings() {
+    const all = getAllPresets();
+    const builtins = all.filter(p => p.builtin);
+    const customs = all.filter(p => !p.builtin);
+    document.getElementById('builtinList').innerHTML = builtins.map(p => `
+      <div class="preset-card"><div class="preset-card-header"><span class="preset-card-name">${esc(p.name)}</span><span class="preset-card-locale">${p.locale.toUpperCase()}</span></div>
+      <div class="preset-card-searches">${p.searches.map(s=>esc(s.label)).join(', ')}</div></div>`).join('');
+    const customList = document.getElementById('customList');
+    if (!customs.length) {
+      customList.innerHTML = `<div style="color:var(--text-dim);font-size:13px;padding:10px 0;">${esc(M('noCustomPresets'))}</div>`;
+    } else {
+      customList.innerHTML = customs.map((p, i) => `
+        <div class="preset-card custom"><div class="preset-card-header"><span class="preset-card-name">${esc(p.name)}</span><span class="preset-card-locale">${p.locale.toUpperCase()}</span></div>
+        <div class="preset-card-searches">${p.searches.map(s=>esc(s.label)).join(', ')}</div>
+        <div class="preset-actions"><button data-action="edit" data-idx="${i}">${esc(M('editBtn'))}</button><button class="delete" data-action="delete" data-idx="${i}">${esc(M('deleteBtn'))}</button></div></div>`).join('');
+      customList.querySelectorAll('[data-action="edit"]').forEach(btn => btn.addEventListener('click', () => openEditor(parseInt(btn.dataset.idx))));
+      customList.querySelectorAll('[data-action="delete"]').forEach(btn => btn.addEventListener('click', () => deleteCustomPreset(parseInt(btn.dataset.idx))));
+    }
+  }
+  function deleteCustomPreset(i) {
+    if (!confirm(M('confirmDeletePreset'))) return;
+    const customs = Store.getCustomPresets(); customs.splice(i, 1);
+    Store.saveCustomPresets(customs); renderSettings(); loadPresetSelect();
+  }
+  document.getElementById('addCustomBtn').addEventListener('click', () => openEditor(-1));
+
+  // --- Edit Modal ---
+  const editModal = document.getElementById('editModal');
+  const editName = document.getElementById('editName');
+  const editLocale = document.getElementById('editLocale');
+  const searchEntries = document.getElementById('searchEntries');
+  const jsonEditorEl = document.getElementById('jsonEditor');
+  const jsonError = document.getElementById('jsonError');
+  const searchCount = document.getElementById('searchCount');
+  let editingIndex = -1, jsonMode = false;
+
+  const SEARCH_ENGINES = [
+    { value:'google', label:()=>M('engineGoogle'), base:'https://www.google.com/search?q=' },
+    { value:'maps', label:()=>M('engineMaps'), base:'https://www.google.com/maps/search/' },
+    { value:'youtube', label:()=>M('engineYoutube'), base:'https://www.youtube.com/results?search_query=' },
+    { value:'custom', label:()=>M('engineCustom'), base:'' },
+  ];
+
+  function openEditor(index) {
+    editingIndex = index; jsonMode = false;
+    jsonEditorEl.classList.remove('show'); searchEntries.style.display = '';
+    document.getElementById('addSearchEntry').style.display = '';
+    document.getElementById('jsonToggle').textContent = M('jsonToggle');
+    jsonError.style.display = 'none';
+    if (index >= 0) {
+      const customs = Store.getCustomPresets(); const p = customs[index];
+      editName.value = p.name; editLocale.value = p.locale;
+      renderSearchEntries(p.searches);
+      document.getElementById('modalTitle').textContent = M('modalTitleEdit');
+    } else {
+      editName.value = ''; editLocale.value = 'ja';
+      renderSearchEntries([{label:'Google',url:'https://www.google.com/search?q={query}',warning:false}]);
+      document.getElementById('modalTitle').textContent = M('modalTitleNew');
+    }
+    editModal.classList.add('show');
+  }
+  function closeEditor() { editModal.classList.remove('show'); }
+  document.getElementById('editCancel').addEventListener('click', closeEditor);
+  editModal.addEventListener('click', e => { if (e.target === editModal) closeEditor(); });
+
+  function renderSearchEntries(searches) {
+    searchEntries.innerHTML = '';
+    searches.forEach(s => {
+      let engine = 'custom', queryTemplate = '';
+      for (const eng of SEARCH_ENGINES) {
+        if (eng.value === 'custom') continue;
+        if (s.url.startsWith(eng.base)) { engine = eng.value; queryTemplate = decodeURIComponent(s.url.slice(eng.base.length)); break; }
+      }
+      if (engine === 'custom') queryTemplate = '';
+      addSearchEntry({label:s.label, engine, queryTemplate, url:s.url, warning:s.warning});
+    });
+    updateSearchCount();
+  }
+
+  function addSearchEntry({label, engine, queryTemplate, url, warning}) {
+    const div = document.createElement('div'); div.className = 'search-entry';
+    const engineOptions = SEARCH_ENGINES.map(e => `<option value="${e.value}" ${e.value===engine?'selected':''}>${e.label()}</option>`).join('');
+    div.innerHTML = `<button class="remove-entry" title="${escA(M('removeEntryTitle'))}">×</button>
+      <div class="entry-row"><div class="entry-field"><label>${esc(M('serviceNameLabel'))}</label><input type="text" class="entry-label" value="${escA(label)}" placeholder="${escA(M('serviceNamePlaceholder'))}"></div>
+      <div class="entry-field"><label>${esc(M('searchEngineLabel'))}</label><select class="entry-engine">${engineOptions}</select></div></div>
+      <div class="entry-query-row" ${engine==='custom'?'style="display:none"':''}><label>${esc(M('queryLabel'))}</label><input type="text" class="entry-query" value="${escA(queryTemplate)}" placeholder="${escA(M('queryPlaceholder'))}"></div>
+      <div class="entry-url-preview" title="${escA(M('urlEditTitle'))}">${esc(url||buildUrlFromEntry(engine,queryTemplate))}</div>
+      <div class="entry-url-edit"><input type="text" class="entry-url-direct" value="${escA(url)}" placeholder="https://..."></div>
+      <div class="entry-validation"></div>
+      <div class="entry-options"><label><input type="checkbox" class="entry-warning" ${warning?'checked':''}> ${esc(M('warningFlag'))}</label></div>`;
+    const engineSelect = div.querySelector('.entry-engine');
+    const queryInput = div.querySelector('.entry-query');
+    const queryRow = div.querySelector('.entry-query-row');
+    const preview = div.querySelector('.entry-url-preview');
+    const urlEditWrap = div.querySelector('.entry-url-edit');
+    const urlDirect = div.querySelector('.entry-url-direct');
+    const validation = div.querySelector('.entry-validation');
+    function updatePreview() {
+      const eng = engineSelect.value; const q = queryInput.value || '{query}';
+      if (eng !== 'custom') { const u = buildUrlFromEntry(eng, q); preview.textContent = u; urlDirect.value = u; validation.style.display = 'none'; }
+      const fUrl = urlDirect.value;
+      if (fUrl && !fUrl.includes('{query}') && !fUrl.includes(encodeURIComponent('{query}'))) { validation.textContent = M('urlValidationWarning'); validation.style.display = 'block'; }
+      else { validation.style.display = 'none'; }
+    }
+    engineSelect.addEventListener('change', () => {
+      if (engineSelect.value === 'custom') { queryRow.style.display='none'; urlEditWrap.classList.add('show'); preview.style.display='none'; }
+      else { queryRow.style.display=''; urlEditWrap.classList.remove('show'); preview.style.display=''; updatePreview(); }
+    });
+    queryInput.addEventListener('input', updatePreview);
+    preview.addEventListener('click', () => { urlEditWrap.classList.toggle('show'); if (urlEditWrap.classList.contains('show')) urlDirect.focus(); });
+    urlDirect.addEventListener('input', () => { preview.textContent = urlDirect.value; updatePreview(); });
+    div.querySelector('.remove-entry').addEventListener('click', () => { div.remove(); updateSearchCount(); });
+    searchEntries.appendChild(div); updateSearchCount();
+  }
+
+  function buildUrlFromEntry(engine, queryTemplate) {
+    const eng = SEARCH_ENGINES.find(e => e.value === engine);
+    if (!eng || !eng.base) return '';
+    return eng.base + encodeURIComponent(queryTemplate).replace(/%7Bquery%7D/gi, '{query}');
+  }
+  function readFormEntries() {
+    return Array.from(searchEntries.querySelectorAll('.search-entry')).map(div => {
+      const engine = div.querySelector('.entry-engine').value;
+      const query = div.querySelector('.entry-query').value.trim();
+      let url;
+      if (engine === 'custom' || div.querySelector('.entry-url-edit').classList.contains('show')) { url = div.querySelector('.entry-url-direct').value.trim(); }
+      else { url = buildUrlFromEntry(engine, query || '{query}'); }
+      return { label: div.querySelector('.entry-label').value.trim(), url, warning: div.querySelector('.entry-warning').checked };
+    }).filter(e => e.label && e.url);
+  }
+  function updateSearchCount() { searchCount.textContent = M('searchCount', [String(searchEntries.children.length)]); }
+
+  document.getElementById('addSearchEntry').addEventListener('click', () => {
+    if (searchEntries.children.length >= 10) { alert(M('alertMaxSearchTargets')); return; }
+    addSearchEntry({label:'', engine:'google', queryTemplate:'{query}', url:'', warning:false});
+  });
+
+  // JSON toggle
+  document.getElementById('jsonToggle').addEventListener('click', () => {
+    jsonMode = !jsonMode;
+    document.getElementById('jsonToggle').textContent = jsonMode ? M('jsonToggleBack') : M('jsonToggle');
+    if (jsonMode) {
+      jsonEditorEl.classList.add('show'); searchEntries.style.display = 'none'; document.getElementById('addSearchEntry').style.display = 'none';
+      jsonEditorEl.value = JSON.stringify(readFormEntries(), null, 2);
+    } else {
+      jsonEditorEl.classList.remove('show'); searchEntries.style.display = ''; document.getElementById('addSearchEntry').style.display = '';
+      try { renderSearchEntries(JSON.parse(jsonEditorEl.value)); jsonError.style.display = 'none'; }
+      catch (e) { jsonError.textContent = M('jsonErrorPrefix') + e.message; jsonError.style.display = 'block'; }
+    }
+  });
+
+  // Save preset
+  document.getElementById('editSave').addEventListener('click', () => {
+    const name = editName.value.trim();
+    if (!name) { editName.style.borderColor = 'var(--danger)'; return; }
+    editName.style.borderColor = '';
+    let searches;
+    if (jsonMode) {
+      try {
+        searches = JSON.parse(jsonEditorEl.value);
+        if (!Array.isArray(searches)) throw new Error(M('jsonErrorArray'));
+        searches.forEach(s => { if (!s.label || !s.url) throw new Error(M('jsonErrorFields')); });
+      } catch (e) { jsonError.textContent = M('jsonErrorPrefix') + e.message; jsonError.style.display = 'block'; return; }
+    } else { searches = readFormEntries(); }
+    if (!searches.length) { alert(M('alertAddOneSearch')); return; }
+    if (searches.length > 10) { alert(M('alertMaxSearchTargets')); return; }
+    const customs = Store.getCustomPresets();
+    if (customs.length >= 10 && editingIndex < 0) { alert(M('alertMaxCustomPresets')); return; }
+    const preset = { id: editingIndex >= 0 ? customs[editingIndex].id : 'custom-' + Date.now(), name, locale: editLocale.value, builtin: false, searches };
+    if (editingIndex >= 0) customs[editingIndex] = preset; else customs.push(preset);
+    Store.saveCustomPresets(customs);
+    closeEditor(); renderSettings(); loadPresetSelect();
+  });
+});
   </script>
 </body>
 </html>
