@@ -92,6 +92,45 @@
   .drop-overlay-title { font-size: 42px; font-weight: 700; color: var(--primary); letter-spacing: -0.01em; margin-bottom: 0px; text-align: center; }
   .drop-hint { font-size: 14px; color: var(--text-dim); line-height: 1.6; max-width: 600px; margin: 0 auto -20px; text-align: center; background: var(--surface2); padding: 8px 24px; border-radius: 20px; font-weight: 500; }
 
+  /* ── Instructions ── */
+  .instructions {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    border-radius: 0;
+    margin-bottom: 0;
+    box-shadow: none;
+    flex-shrink: 0;
+  }
+  .instructions summary {
+    cursor: pointer;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 600;
+    list-style: none;
+  }
+  .instructions summary::-webkit-details-marker { display: none; }
+  .instructions summary::before {
+    content: "▶";
+    font-size: 9px;
+    margin-right: 8px;
+    color: var(--text-dim);
+    transition: transform 0.2s;
+  }
+  .instructions[open] summary::before { transform: rotate(90deg); }
+  .instructions-content {
+    padding: 0 14px 14px 32px;
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+  .instructions-content ul { padding-left: 18px; margin-top: 6px; }
+  .instructions-content li { margin-bottom: 6px; }
+  .instructions-content strong { color: var(--text); }
+
   .drop-boxes { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
   
   .drop-zone {
@@ -389,6 +428,39 @@
   <div class="splitter" id="splitter"></div>
 
   <div class="side-panel" id="sidePanel">
+    <details class="instructions">
+      <summary><span lang="ja">使い方</span><span lang="en">How to Use</span></summary>
+      <div class="instructions-content">
+        <div lang="ja">
+          <ul>
+            <li><strong>プレビュー連動</strong>: リストの項目をクリックすると、左側のプレビューが該当箇所までスクロールします。</li>
+            <li><strong>手動編集</strong>: 訳文をクリックすると編集エリアが開きます。任意のテキストを入力して保存でき、編集した項目には <span class="status-badge active edited">EDITED</span> バッジが付きます。</li>
+            <li><strong>バッジの意味</strong>:
+              <ul style="margin-top:4px;">
+                <li><span class="status-badge active csv">CSV Ref</span> : 読み込んだCSV内に一致する原文と訳文のペアがある状態です。</li>
+                <li><span class="status-badge active ref">HTML Ref</span> : 読み込んだ参考用HTML（任意）の中に対応するテキストがある状態です。</li>
+              </ul>
+            </li>
+            <li><strong>検索と絞り込み</strong>: 検索窓やフィルタボタンを使って、未翻訳（To Do）や編集済み（Edited）項目のみを抽出できます。</li>
+            <li><strong>書き出し</strong>: 編集内容はいつでもCSV形式、またはHTML形式でダウンロード可能です。</li>
+          </ul>
+        </div>
+        <div lang="en">
+          <ul>
+            <li><strong>Sync Preview</strong>: Click an item to automatically scroll the preview pane to that location.</li>
+            <li><strong>Manual Edit</strong>: Click any translation to open the edit area. You can manually enter text; edited items will be marked with an <span class="status-badge active edited">EDITED</span> badge.</li>
+            <li><strong>Badge Meanings</strong>:
+              <ul style="margin-top:4px;">
+                <li><span class="status-badge active csv">CSV Ref</span> : A matching original-target pair is available in the loaded CSV.</li>
+                <li><span class="status-badge active ref">HTML Ref</span> : Corresponding text is available in the reference HTML (optional).</li>
+              </ul>
+            </li>
+            <li><strong>Search & Filter</strong>: Use the search box or filter buttons to focus on specific items like "To Do" or "Edited".</li>
+            <li><strong>Export</strong>: Download your progress as CSV or the final translated HTML at any time.</li>
+          </ul>
+        </div>
+      </div>
+    </details>
     <div class="panel-controls">
       <input type="text" class="search-box" id="searchBox" placeholder="Search text...">
       <div class="filter-group" style="flex-wrap: wrap; gap: 5px;">
