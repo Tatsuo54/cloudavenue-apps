@@ -130,11 +130,16 @@
 
     /* --- Page Specific Styles --- */
     .hero-title {
-      font-size: 42px;
-      margin-bottom: 10px;
+      font-size: 48px;
+      font-weight: 800;
       color: var(--primary);
-      font-weight: 700;
-      letter-spacing: -0.01em;
+      margin-bottom: 8px;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+
+    @media (max-width: 600px) {
+      .hero-title { font-size: 36px; }
     }
     .subtitle {
       color: var(--text-dim);
@@ -191,7 +196,7 @@
   </nav>
 
   <div class="container">
-    <h1 class="hero-title">Cloud Avenue｜Web Apps</h1>
+    <h1 class="hero-title">Cloud Avenue</h1>
     <p class="subtitle">
       <span lang="ja">ちょっとしたお役立ちアプリたち</span>
       <span lang="en">A collection of handy utility web apps</span>
