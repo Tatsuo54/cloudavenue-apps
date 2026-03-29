@@ -160,27 +160,37 @@
       color: inherit;
       transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     }
+    
+    /* ホバー時の背景色変更を無くし、枠線と影のみ適用 */
     .app-card:hover {
       transform: translateY(-4px);
       box-shadow: var(--shadow-md);
       border-color: var(--accent-dim);
-      background: var(--hover-bg);
     }
+
+    /* ホバー時にテキストの不透明度を0.5に下げる */
+    .app-card:hover .app-name,
+    .app-card:hover .app-desc {
+      opacity: 0.5; /* 0.5に変更 */
+      transition: opacity 0.3s ease; /* 0.3sに変更 */
+    }
+
     .app-name {
       font-weight: bold;
       font-size: 18px;
       margin-bottom: 6px;
       color: var(--text);
+      transition: opacity 0.3s ease; /* 0.3sに変更 */
     }
     .app-desc {
       color: var(--text-dim);
       font-size: 14px;
+      transition: opacity 0.3s ease; /* 0.3sに変更 */
     }
   </style>
 </head>
 <body>
 
-  <!-- Shared Navigation Template -->
   <nav class="top-nav">
     <div class="nav-right">
       <select id="theme-select" class="ctrl-select">
@@ -261,7 +271,6 @@
     <a href="https://cloudavenue.jp" target="_blank">cloudavenue.jp</a>
   </footer>
 
-  <!-- Shared Script Template -->
   <script id="cloudavenue-shared-script">
     (function() {
       const getStorage = (key, defaultVal) => localStorage.getItem(key) || defaultVal;
