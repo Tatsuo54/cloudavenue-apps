@@ -351,6 +351,10 @@
         <span lang="ja">一括ダウンロード（ZIP）</span>
         <span lang="en">Download All (ZIP)</span>
       </button>
+      <button class="btn btn-primary" id="downloadWebpBtn">
+        <span lang="ja">WebPで一括ダウンロード（ZIP）</span>
+        <span lang="en">Download All as webp (ZIP)</span>
+      </button>
       <button class="btn btn-secondary" id="clearBtn">
         <span lang="ja">クリア</span>
         <span lang="en">Clear</span>
@@ -437,6 +441,7 @@
     const rightCut = document.getElementById('rightCut');
     const rightCutNum = document.getElementById('rightCutNum');
     const downloadBtn = document.getElementById('downloadBtn');
+    const downloadWebpBtn = document.getElementById('downloadWebpBtn');
     const clearBtn = document.getElementById('clearBtn');
     const btnContainer = document.getElementById('btnContainer');
     const progress = document.getElementById('progress');
@@ -725,13 +730,22 @@
       fileInput.value = '';
     });
     
-    downloadBtn.addEventListener('click', async () => {
+    // webp: true のときは WebP（品質100%）に変換し、拡張子を .webp にする
+    const downloadAll = async (webp) => {
       if (loadedImages.length === 0) return;
-      
-      downloadBtn.disabled = true;
-      progress.classList.remove('hidden');
-      
+
       const isEn = document.documentElement.lang === 'en';
+
+      // Safari など WebP に書き出せないブラウザは PNG を返すため、先に確かめる
+      if (webp && !document.createElement('canvas').toDataURL('image/webp').startsWith('data:image/webp')) {
+        alert(isEn ? 'This browser cannot export WebP. Please use Chrome or Edge.' : 'このブラウザはWebPに書き出せません。ChromeかEdgeを使ってください。');
+        return;
+      }
+
+      downloadBtn.disabled = true;
+      downloadWebpBtn.disabled = true;
+      progress.classList.remove('hidden');
+
       progress.textContent = isEn ? 'Processing...' : '処理中...';
       
       const zip = new JSZip();
@@ -765,9 +779,10 @@
           0, 0, outputWidth, outputHeight
         );
         
-        const dataUrl = canvas.toDataURL('image/png');
+        const dataUrl = webp ? canvas.toDataURL('image/webp', 1.0) : canvas.toDataURL('image/png');
         const base64 = dataUrl.split(',')[1];
-        zip.file(item.name, base64, {base64: true});
+        const name = webp ? item.name.replace(/\.[^.]+$/, '') + '.webp' : item.name;
+        zip.file(name, base64, {base64: true});
         
         await new Promise(resolve => setTimeout(resolve, 10));
       }
@@ -776,13 +791,17 @@
       
       const blob = await zip.generateAsync({type: 'blob'});
       const link = document.createElement('a');
-      link.download = 'cropped_images.zip';
+      link.download = webp ? 'cropped_images_webp.zip' : 'cropped_images.zip';
       link.href = URL.createObjectURL(blob);
       link.click();
-      
+
       progress.textContent = isEn ? `Done! Processed ${loadedImages.length} files.` : `完了！ ${loadedImages.length} ファイルを処理しました`;
       downloadBtn.disabled = false;
-    });
+      downloadWebpBtn.disabled = false;
+    };
+
+    downloadBtn.addEventListener('click', () => downloadAll(false));
+    downloadWebpBtn.addEventListener('click', () => downloadAll(true));
   </script>
 </body>
 </html>
